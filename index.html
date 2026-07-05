@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 
 <head>
   <meta charset="UTF-8">
@@ -136,7 +136,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 
   <script>
-    // ⚠️ अपने Firebase कंसोल से डिटेल्स यहाँ पेस्ट करें:
+    // 🔐 सुरक्षा निर्देश: क्लाइंट-साइड कोड (HTML) में कीज़ का दिखना सामान्य है, 
+    // लेकिन आपको अपने Firebase Console में App Check और Security Rules को कड़ा करना होगा।
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
       authDomain: "YOUR_AUTH_DOMAIN",
@@ -166,7 +167,7 @@
       renderUI();
     }
 
-    // Realtime Sync with Firebase Database
+    // Realtime Sync
     db.collection("gallery").orderBy("timestamp", "desc").onSnapshot((snapshot) => {
       globalItems = [];
       snapshot.forEach((doc) => {
@@ -226,7 +227,7 @@
       renderUI(document.getElementById("searchBar").value);
     }
 
-    // Cloud File Upload Mechanism
+    // Cloud File Upload
     document.getElementById("mediaUpload").addEventListener("change", function (event) {
       const files = event.target.files;
       const album = document.getElementById("albumSelect").value;
@@ -262,9 +263,7 @@
     });
 
     function toggleLike(id, currentLikes) {
-      db.collection("gallery").doc(id).update({
-        likes: currentLikes + 1
-      });
+      db.collection("gallery").doc(id).update({ likes: currentLikes + 1 });
     }
 
     function addComment(id) {
@@ -282,14 +281,13 @@
         storage.ref(storagePath).delete().then(() => {
           db.collection("gallery").doc(id).delete();
         }).catch(() => {
-          // If file missing in storage, delete record anyway
           db.collection("gallery").doc(id).delete();
         });
       }
     }
 
     function downloadMedia(url, filename) {
-      window.open(url, '_blank'); // Cloud URLs can be downloaded or opened directly
+      window.open(url, '_blank');
     }
 
     function openLightbox(url, isVideo) {
