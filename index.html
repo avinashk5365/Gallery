@@ -152,7 +152,7 @@
       border-top: 1px solid rgba(255, 255, 255, 0.05);
     }
 
-    .social-actions { display: flex; gap: 15px; }
+    .social-actions { display: flex; gap: 12px; }
 
     .action-icon-btn {
       background: none;
@@ -191,7 +191,6 @@
       font-size: 24px; color: white; cursor: pointer; box-shadow: 0 5px 20px rgba(108, 92, 231, 0.4);
     }
 
-    /* --- LIGHTBOX MODES FOR ZOOM AND NAV --- */
     #lightbox {
       display: none; position: fixed; z-index: 1000; left: 0; top: 0;
       width: 100%; height: 100%; background: rgba(5, 3, 10, 0.98);
@@ -227,7 +226,6 @@
 
     .close-lightbox { position: absolute; top: -60px; right: 10px; font-size: 30px; color: white; background: none; border: none; cursor: pointer; z-index: 1010; }
 
-    /* Zoom Controls UI */
     .zoom-controls {
       position: absolute;
       top: -60px;
@@ -248,11 +246,8 @@
       transition: 0.2s;
     }
 
-    .zoom-btn:hover {
-      background: var(--primary-blue);
-    }
+    .zoom-btn:hover { background: var(--primary-blue); }
 
-    /* Navigation Scroll Buttons */
     .nav-btn {
       position: absolute;
       top: 50%;
@@ -324,7 +319,6 @@
     <div class="fab" onclick="toggleUploadPanel()"><i class="fa-solid fa-plus"></i></div>
   </div>
 
-  <!-- LIGHTBOX WITH SCROLL & ZOOM CONTROLS -->
   <div id="lightbox">
     <div class="lightbox-content-wrapper">
       <div class="zoom-controls">
@@ -344,11 +338,10 @@
   <script>
     let db;
     let currentCategory = "all";
-    let loadedItems = []; // Lightbox navigation ke liye list track karne ke liye
-    let currentLightboxIndex = -1; // Current open image ka index
-    let currentScale = 1; // Zoom Level save karne ke liye
+    let loadedItems = []; 
+    let currentLightboxIndex = -1; 
+    let currentScale = 1; 
 
-    // 1. Initialize IndexedDB
     const request = indexedDB.open("PremiumGalleryDB", 1);
     
     request.onupgradeneeded = function(e) {
@@ -375,7 +368,6 @@
       renderGallery();
     }
 
-    // 2. Optimized Fetch and Render Logic
     function renderGallery(filterText = "") {
       if (!db) return;
       const gallery = document.getElementById("gallery");
@@ -388,13 +380,12 @@
 
       getAllRequest.onsuccess = function() {
         const items = getAllRequest.result;
-        loadedItems = []; // Clear array before refilling
+        loadedItems = []; 
         
         items.forEach((item) => {
           if (currentCategory !== "all" && item.album !== currentCategory) return;
           if (query && !item.name.toLowerCase().includes(query)) return;
 
-          // Lightbox tracking ke liye push karein
           loadedItems.push(item);
           const itemIndex = loadedItems.length - 1;
 
@@ -424,8 +415,10 @@
                 </button>
               </div>
               <div class="social-actions">
-                <button class="action-icon-btn" style="color:#74b9ff" onclick="downloadMedia('${item.url}', '${item.name}')"><i class="fa-solid fa-download"></i></button>
-                <button class="action-icon-btn" style="color:#ff7675" onclick="deleteMedia(${item.id})"><i class="fa-regular fa-trash-can"></i></button>
+                <!-- NEW: SHARE BUTTON -->
+                <button class="action-icon-btn" style="color:#00cec9" onclick="shareMedia('${item.name}')" title="Share"><i class="fa-solid fa-share-nodes"></i></button>
+                <button class="action-icon-btn" style="color:#74b9ff" onclick="downloadMedia('${item.url}', '${item.name}')" title="Download"><i class="fa-solid fa-download"></i></button>
+                <button class="action-icon-btn" style="color:#ff7675" onclick="deleteMedia(${item.id})" title="Delete"><i class="fa-regular fa-trash-can"></i></button>
               </div>
             </div>
             <div class="comments-summary">
@@ -444,7 +437,6 @@
       renderGallery(document.getElementById("searchBar").value);
     }
 
-    // 3. Media Uploading & Saving inside IndexedDB
     document.getElementById("mediaUpload").addEventListener("change", function (event) {
       const files = event.target.files;
       const album = document.getElementById("albumSelect").value;
@@ -472,7 +464,6 @@
       toggleUploadPanel();
     });
 
-    // 4. Update Actions
     function updateItem(id, updateCallback) {
       const transaction = db.transaction(["media"], "readwrite");
       const store = transaction.objectStore("media");
@@ -522,11 +513,25 @@
       document.body.removeChild(a);
     }
 
-    // --- NEW: LIGHTBOX SCROLL & ZOOM LOGIC ---
+    // NEW: NATIVE WEB SHARE FUNCTIONALITY
+    function shareMedia(title) {
+      if (navigator.share) {
+        navigator.share({
+          title: title,
+          text: `Check out this file on Premium Media Hub: ${title}`,
+          url: window.location.href
+        }).catch(err => console.log("Error sharing:", err));
+      } else {
+        // Fallback agar Web Share support nahi karega to link copy ho jayega
+        navigator.clipboard.writeText(window.location.href);
+        alert("Gallery link copied to clipboard to share!");
+      }
+    }
+
     function openLightboxByIndex(index) {
       if (index < 0 || index >= loadedItems.length) return;
       currentLightboxIndex = index;
-      resetZoom(); // Reset zoom state when changing image
+      resetZoom(); 
 
       const item = loadedItems[index];
       const viewerContainer = document.getElementById("lightboxMediaItem");
@@ -540,7 +545,6 @@
       document.getElementById("lightbox").style.display = "flex";
     }
 
-    // Scroll karne (Next / Prev) ke liye function
     function navigateLightbox(direction) {
       let newIndex = currentLightboxIndex + direction;
       if (newIndex >= 0 && newIndex < loadedItems.length) {
@@ -548,13 +552,11 @@
       }
     }
 
-    // Zoom Functions
     function zoomMedia(amount) {
       const media = document.getElementById("activeMedia");
-      if (!media || media.tagName === "VIDEO") return; // Videos standard zoom avoid karte hain
+      if (!media || media.tagName === "VIDEO") return; 
       
       currentScale += amount;
-      // Limits zoom between 0.5x and 4x
       if (currentScale < 0.5) currentScale = 0.5;
       if (currentScale > 4) currentScale = 4;
       
@@ -573,7 +575,6 @@
       currentLightboxIndex = -1;
     }
 
-    // Keyboard Shortcuts support (Arrow keys and Escape)
     document.addEventListener("keydown", function(e) {
       if (document.getElementById("lightbox").style.display === "flex") {
         if (e.key === "ArrowRight") navigateLightbox(1);
