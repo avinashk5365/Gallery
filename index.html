@@ -6,6 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Premium Social Photo & Video Gallery</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
   <style>
     :root {
       --glass-bg: rgba(255, 255, 255, 0.08);
@@ -336,6 +340,22 @@
   </div>
 
   <script>
+    // --- FIREBASE INITIALIZATION SYSTEM (UPDATED WITH YOUR CREDENTIALS) ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyDKz1U6zxggWBnbYZSl9RgIUca8rihcGzM",
+      authDomain: "my-public-gallery-42e95.firebaseapp.com",
+      projectId: "my-public-gallery-42e95",
+      storageBucket: "my-public-gallery-42e95.firebasestorage.app",
+      messagingSenderId: "727898221593",
+      appId: "1:727898221593:web:65f30cc2e2a303b03e0e88",
+      // नोट: रियलटाइम डेटाबेस के लिए प्रोजेक्ट आईडी के आधार पर डिफ़ॉल्ट URL सेट किया गया है।
+      databaseURL: "https://my-public-gallery-42e95-default-rtdb.firebaseio.com/" 
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const rtdb = firebase.database();
+
     let db;
     let currentCategory = "all";
 
@@ -348,7 +368,7 @@
     let forgotGeneratedOtp = null;
     let forgotStage = 1; // 1: identity check, 2: otp and new password verification
 
-    // 1. Initialize IndexedDB
+    // 1. Initialize IndexedDB (For Gallery Media Data)
     const request = indexedDB.open("PremiumGalleryDB", 1);
     
     request.onupgradeneeded = function(e) {
@@ -363,7 +383,7 @@
       checkUserSessionGate();
     };
 
-    // --- SECURITY & CUSTOM ACCOUNT LOGIC SYSTEM ---
+    // --- SECURITY & ONLINE CLOUD ACCOUNT LOGIC SYSTEM ---
     function checkUserSessionGate() {
       const activeSession = sessionStorage.getItem("app_authenticated");
       if(activeSession) {
@@ -379,7 +399,7 @@
     function toggleAuthMode() {
       isLoginMode = !isLoginMode;
       document.getElementById("authFormTitle").innerText = isLoginMode ? "Account Login" : "Register Account";
-      document.getElementById("authFormSubtitle").innerText = isLoginMode ? "Enter Gmail ID or 10-digit Mobile No." : "Create Identity using Gmail or Mobile Number";
+      document.getElementById("authFormSubtitle").innerText = isLoginMode ? "Enter Gmail ID or 10-digit Mobile No." : "Create Identity using Gmail or Number";
       document.getElementById("switchAuthBtn").innerText = isLoginMode ? "Don't have account? Register" : "Already registered? Login";
     }
 
@@ -404,7 +424,7 @@
       document.getElementById("forgotSection").style.display = "block";
     }
 
-    // Step 1: Validate Form Parameters and Trigger OTP Simulation
+    // [Firebase Integration] Step 1: Validate Inputs & Query Online Cloud DB
     function validateAndRequestOTP() {
       const identity = document.getElementById("authIdentity").value.trim();
       const password = document.getElementById("authPassword").value.trim();
@@ -413,7 +433,6 @@
         return alert("कृपया सभी इनपुट फील्ड्स को पूरा भरें!");
       }
 
-      // Regex Validation Checks
       const gmailCheck = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
       const mobileCheck = /^[0-9]{10}$/;
 
@@ -421,35 +440,40 @@
         return alert("❌ अमान्य एंट्री! कृपया सही Gmail ID (@gmail.com) या 10 अंकों का मोबाइल नंबर डालें।");
       }
 
-      if(isLoginMode) {
-        // Core Security Logic: Read saved parameters inside localstorage registry
-        const savedPassword = localStorage.getItem("user_pass_" + identity);
-        if(!savedPassword) {
-          return alert("❌ यह यूजर आईडी रजिस्टर्ड नहीं है! कृपया पहले 'Register' करें।");
-        }
-        if(savedPassword !== password) {
-          return alert("❌ गलत पासवर्ड! वेबसाइट ब्लॉक है। अगर आप पासवर्ड भूल गए हैं, तो 'Forgot Password?' विकल्प का उपयोग करें।");
-        }
-      } else {
-        // Registration Mode Security Verification Rules
-        const existingUser = localStorage.getItem("user_pass_" + identity);
-        if(existingUser) {
-          return alert("यह आईडी पहले से रजिस्टर्ड है! कृपया सीधे लॉगिन करें।");
-        }
-      }
+      // Firebase पाथ को सेफ बनाने के लिए रिप्लेस रूल
+      const safeKey = identity.replace(/[.#$[\]]/g, "_");
 
-      // Generate 4 digit secret security key
-      generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
-      validatedIdentity = identity;
-      validatedPassword = password;
+      // ऑनलाइन डेटाबेस में यूजर चेक करना
+      rtdb.ref('users/' + safeKey).once('value').then((snapshot) => {
+        const userData = snapshot.val();
 
-      // Swap view panels to the OTP Screen
-      document.getElementById("credentialBlock").style.display = "none";
-      document.getElementById("otpSection").style.display = "block";
-      document.getElementById("otpDisplayAlert").innerHTML = `📨 <b>लॉगिन सुरक्षा ओटीपी:</b> <span style="font-size:18px; font-weight:700; color:#fff; background:#ff4757; padding:2px 8px; border-radius:5px; margin-left:5px; letter-spacing:2px;">${generatedOtp}</span>`;
+        if(isLoginMode) {
+          if(!userData) {
+            return alert("❌ यह यूजर आईडी रजिस्टर्ड नहीं है! कृपया पहले 'Register' करें।");
+          }
+          if(userData.password !== password) {
+            return alert("❌ गलत पासवर्ड! अगर आप पासवर्ड भूल गए हैं, तो 'Forgot Password?' का उपयोग करें।");
+          }
+        } else {
+          if(userData) {
+            return alert("यह आईडी पहले से रजिस्टर्ड है! कृपया सीधे लॉगिन करें।");
+          }
+        }
+
+        // OTP सुरक्षा कोड जनरेट करना
+        generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
+        validatedIdentity = identity;
+        validatedPassword = password;
+
+        document.getElementById("credentialBlock").style.display = "none";
+        document.getElementById("otpSection").style.display = "block";
+        document.getElementById("otpDisplayAlert").innerHTML = `📨 <b>लॉगिन सुरक्षा ओटीपी:</b> <span style="font-size:18px; font-weight:700; color:#fff; background:#ff4757; padding:2px 8px; border-radius:5px; margin-left:5px; letter-spacing:2px;">${generatedOtp}</span>`;
+      }).catch((err) => {
+        alert("डेटाबेस से कनेक्ट करने में त्रुटि: " + err.message);
+      });
     }
 
-    // Step 2: Final OTP Matching Verification Screen Gateway Trigger
+    // [Firebase Integration] Step 2: Verify OTP & Write Cloud Registry
     function verifyOtpAndLogin() {
       const typedOtp = document.getElementById("authOtpInput").value.trim();
       if(!typedOtp) return alert("कृपया प्राप्त हुआ ओटीपी दर्ज करें!");
@@ -458,17 +482,24 @@
         return alert("❌ अमान्य ओटीपी कोड! कृपया सही ओटीपी प्रविष्ट करें।");
       }
 
+      const safeKey = validatedIdentity.replace(/[.#$[\]]/g, "_");
+
       if(!isLoginMode) {
-        // Save permanently to the internal database storage index key
-        localStorage.setItem("user_pass_" + validatedIdentity, validatedPassword);
-        alert("✅ रजिस्ट्रेशन सफल! अब आप लॉगिन कर सकते हैं।");
-        isLoginMode = true;
-        toggleAuthMode();
-        resetAuthScreen();
+        // क्लाउड रियल-टाइम डेटाबेस में सुरक्षित सेव करना
+        rtdb.ref('users/' + safeKey).set({
+          identity: validatedIdentity,
+          password: validatedPassword
+        }).then(() => {
+          alert("✅ रजिस्ट्रेशन सफल! अब आप लॉगिन कर सकते हैं।");
+          isLoginMode = true;
+          toggleAuthMode();
+          resetAuthScreen();
+        }).catch((err) => {
+          alert("रजिस्ट्रेशन सुरक्षित करने में विफलता: " + err.message);
+        });
         return;
       }
 
-      // Setup session token credentials configuration parameters
       sessionStorage.setItem("app_authenticated", "true");
       sessionStorage.setItem("current_user", validatedIdentity);
       
@@ -477,22 +508,24 @@
       checkUserSessionGate();
     }
 
-    // Forgot Password Logic Implementation Flow
+    // [Firebase Integration] Forgot Password Cloud Overwrite Logics
     function processForgotPasswordVerify() {
       const targetId = document.getElementById("forgotIdentity").value.trim();
       if(!targetId) return alert("कृपया अपना रजिस्टर्ड ईमेल या मोबाइल नंबर डालें!");
+      const safeKey = targetId.replace(/[.#$[\]]/g, "_");
 
       if(forgotStage === 1) {
-        const checkRecord = localStorage.getItem("user_pass_" + targetId);
-        if(!checkRecord) {
-          return alert("❌ इस नाम का कोई रिकॉर्ड डेटाबेस में मौजूद नहीं है।");
-        }
+        rtdb.ref('users/' + safeKey).once('value').then((snapshot) => {
+          if(!snapshot.exists()) {
+            return alert("❌ इस नाम का कोई रिकॉर्ड डेटाबेस में मौजूद नहीं है।");
+          }
 
-        forgotGeneratedOtp = Math.floor(1000 + Math.random() * 9000).toString();
-        document.getElementById("forgotOtpVerification").style.display = "block";
-        document.getElementById("forgotOtpDisplay").innerHTML = `🗝️ <b>पासवर्ड रीसेट ओटीपी:</b> <span style="font-size:16px; background:#e67e22; padding:2px 6px; border-radius:4px;">${forgotGeneratedOtp}</span>`;
-        document.getElementById("forgotActionBtn").innerText = "Reset Password Now";
-        forgotStage = 2;
+          forgotGeneratedOtp = Math.floor(1000 + Math.random() * 9000).toString();
+          document.getElementById("forgotOtpVerification").style.display = "block";
+          document.getElementById("forgotOtpDisplay").innerHTML = `🗝️ <b>पासवर्ड रीसेट ओटीपी:</b> <span style="font-size:16px; background:#e67e22; padding:2px 6px; border-radius:4px;">${forgotGeneratedOtp}</span>`;
+          document.getElementById("forgotActionBtn").innerText = "Reset Password Now";
+          forgotStage = 2;
+        });
       } 
       else if(forgotStage === 2) {
         const userOtp = document.getElementById("forgotOtpInput").value.trim();
@@ -504,10 +537,15 @@
           return alert("❌ गलत रीसेट ओटीपी!");
         }
 
-        // Overwrite standard storage map structure references data keys
-        localStorage.setItem("user_pass_" + targetId, newPass);
-        alert("🎉 पासवर्ड सफलतापूर्वक बदल दिया गया है! अब नए पासवर्ड से लॉगिन करें।");
-        resetAuthScreen();
+        // ऑनलाइन पासवर्ड अपडेट कमांड
+        rtdb.ref('users/' + safeKey).update({
+          password: newPass
+        }).then(() => {
+          alert("🎉 पासवर्ड सफलतापूर्वक बदल दिया गया है! अब नए पासवर्ड से लॉगिन करें।");
+          resetAuthScreen();
+        }).catch((err) => {
+          alert("पासवर्ड रीसेट करने में समस्या आई: " + err.message);
+        });
       }
     }
 
@@ -519,7 +557,7 @@
     }
 
 
-    // --- MEDIA MANAGEMENT SYSTEM FUNCTIONS (ORIGINAL RESTORED) ---
+    // --- MEDIA MANAGEMENT SYSTEM FUNCTIONS (RESTORED ORIGINAL INDEXEDDB) ---
     function toggleUploadPanel() {
       const panel = document.getElementById("uploadPanel");
       panel.style.display = panel.style.display === "block" ? "none" : "block";
