@@ -46,6 +46,11 @@
       transition: background 0.3s, color 0.3s;
     }
 
+    /* INITIAL STATE: Main application is hidden until login */
+    #mainAppContent {
+      display: none;
+    }
+
     header {
       background: var(--panel-bg);
       backdrop-filter: blur(16px);
@@ -103,27 +108,32 @@
     }
     .user-profile-badge i { color: var(--primary-blue); }
 
-    /* Auth Overlay Modal */
+    /* Initial Landing Page Auth Screen Style */
     .auth-overlay {
       position: fixed; top:0; left:0; width:100%; height:100%;
-      background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
-      display: none; justify-content: center; align-items: center; z-index: 500;
+      background: var(--bg-main);
+      display: flex; justify-content: center; align-items: center; z-index: 999;
     }
     .auth-card {
       background: var(--panel-bg); border: 1px solid var(--glass-border);
-      padding: 30px; border-radius: var(--card-radius); width: 100%; max-width: 380px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      padding: 40px 30px; border-radius: var(--card-radius); width: 100%; max-width: 400px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      text-align: center;
     }
-    .auth-card h2 { margin-bottom: 20px; font-size: 20px; text-align: center; }
+    .auth-card h2 { margin-bottom: 10px; font-size: 24px; color: var(--text-main); }
+    .auth-card p.subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 25px; }
     .auth-card input {
-      width: 100%; padding: 12px; margin-bottom: 12px; background: var(--glass-bg);
+      width: 100%; padding: 14px; margin-bottom: 15px; background: var(--glass-bg);
       border: 1px solid var(--glass-border); color: var(--text-main); border-radius: 10px; outline: none;
+      font-size: 14px; transition: border-color 0.2s;
     }
+    .auth-card input:focus { border-color: var(--primary-blue); }
     .auth-submit-btn {
-      width: 100%; padding: 12px; background: var(--primary-blue); color: white;
+      width: 100%; padding: 14px; background: var(--primary-blue); color: white;
       border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s;
+      font-size: 15px; margin-top: 5px;
     }
-    .auth-submit-btn:hover { opacity: 0.9; }
+    .auth-submit-btn:hover { opacity: 0.9; transform: translateY(-1px); }
 
     .top-controls {
       max-width: 500px;
@@ -308,61 +318,69 @@
 
   <audio id="bgMusic" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
 
-  <header>
-    <h1>✨ Premium Media Hub</h1>
-    <div class="header-actions">
-      <button class="btn-icon" id="musicToggle" onclick="toggleMusic()" title="Play Background Music"><i class="fa-solid fa-music"></i></button>
-      <button class="btn-icon" id="themeToggle" onclick="toggleTheme()" title="Switch Theme"><i class="fa-solid fa-moon"></i></button>
-      
-      <div class="user-profile-badge" id="profileBadge" onclick="handleProfileClick()">
-        <i class="fa-solid fa-user-circle"></i> <span id="profileName">Login / Register</span>
-      </div>
-    </div>
-  </header>
-
   <div class="auth-overlay" id="authModal">
     <div class="auth-card">
-      <button onclick="document.getElementById('authModal').style.display='none'" style="float:right; background:none; border:none; color:var(--text-muted); cursor:pointer;">&times;</button>
-      <h2 id="authTitle">Secure Core Login</h2>
+      <div style="font-size: 40px; margin-bottom: 15px;">✨</div>
+      <h2 id="authTitle">Welcome Hub</h2>
+      <p class="subtitle" id="authSubtitle">Please log in to manage your premium media dashboard</p>
+      
       <input type="text" id="authUsername" placeholder="Enter Username">
-      <input type="password" id="authPassword" placeholder="Enter Account Password Key">
-      <button class="auth-submit-btn" onclick="processAuthSubmit()">Access Credentials</button>
-      <p style="text-align: center; font-size: 12px; margin-top: 15px; cursor: pointer; color: var(--primary-blue);" onclick="toggleAuthType()">Toggle Register / Login</p>
+      <input type="password" id="authPassword" placeholder="Enter Password Key">
+      
+      <button class="auth-submit-btn" onclick="processAuthSubmit()">Authenticate & Enter</button>
+      
+      <p style="text-align: center; font-size: 13px; margin-top: 20px; cursor: pointer; color: var(--primary-blue); font-weight: 500;" onclick="toggleAuthType()">
+        Don't have an account? Register Here
+      </p>
     </div>
   </div>
 
-  <div class="top-controls">
-    <div class="search-box">
-      <i class="fa-solid fa-magnifying-glass"></i>
-      <input type="text" id="searchBar" placeholder="Live search files, titles, albums..." oninput="filterGallery()">
-    </div>
-  </div>
+  <div id="mainAppContent">
+    <header>
+      <h1>✨ Premium Media Hub</h1>
+      <div class="header-actions">
+        <button class="btn-icon" id="musicToggle" onclick="toggleMusic()" title="Play Background Music"><i class="fa-solid fa-music"></i></button>
+        <button class="btn-icon" id="themeToggle" onclick="toggleTheme()" title="Switch Theme"><i class="fa-solid fa-moon"></i></button>
+        
+        <div class="user-profile-badge" id="profileBadge" onclick="handleProfileClick()" title="Click to View Profile or Logout">
+          <i class="fa-solid fa-user-circle"></i> <span id="profileName">Guest</span>
+        </div>
+      </div>
+    </header>
 
-  <div class="categories">
-    <button class="cat-btn active" onclick="switchCategory('all', this)">All Feeds</button>
-    <button class="cat-btn" onclick="switchCategory('General', this)">General</button>
-    <button class="cat-btn" onclick="switchCategory('Friends', this)">Friend's</button>
-    <button class="cat-btn" onclick="switchCategory('Travel', this)">Travel</button>
-    <button class="cat-btn" onclick="switchCategory('Work', this)">Work</button>
-  </div>
-
-  <div id="gallery"></div>
-
-  <div class="fab-container">
-    <div class="upload-options-panel" id="uploadPanel">
-      <h4>📂 Upload Dashboard</h4>
-      <select id="albumSelect">
-        <option value="General">General</option>
-        <option value="Friend's">Friend's</option>
-        <option value="Travel">Travel</option>
-        <option value="Work">Work</option>
-      </select>
-      <input type="file" id="mediaUpload" accept="image/*,video/*" multiple>
-      <div style="display:flex; gap:5px; align-items:center; font-size:11px;">
-        <input type="checkbox" id="encryptStatus" style="width:auto; margin:0;"> Lock items with Password
+    <div class="top-controls">
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="searchBar" placeholder="Live search files, titles, albums..." oninput="filterGallery()">
       </div>
     </div>
-    <div class="fab" onclick="toggleUploadPanel()"><i class="fa-solid fa-plus"></i></div>
+
+    <div class="categories">
+      <button class="cat-btn active" onclick="switchCategory('all', this)">All Feeds</button>
+      <button class="cat-btn" onclick="switchCategory('General', this)">General</button>
+      <button class="cat-btn" onclick="switchCategory('Friends', this)">Friend's</button>
+      <button class="cat-btn" onclick="switchCategory('Travel', this)">Travel</button>
+      <button class="cat-btn" onclick="switchCategory('Work', this)">Work</button>
+    </div>
+
+    <div id="gallery"></div>
+
+    <div class="fab-container">
+      <div class="upload-options-panel" id="uploadPanel">
+        <h4>📂 Upload Dashboard</h4>
+        <select id="albumSelect">
+          <option value="General">General</option>
+          <option value="Friend's">Friend's</option>
+          <option value="Travel">Travel</option>
+          <option value="Work">Work</option>
+        </select>
+        <input type="file" id="mediaUpload" accept="image/*,video/*" multiple>
+        <div style="display:flex; gap:5px; align-items:center; font-size:11px;">
+          <input type="checkbox" id="encryptStatus" style="width:auto; margin:0;"> Lock items with Password
+        </div>
+      </div>
+      <div class="fab" onclick="toggleUploadPanel()"><i class="fa-solid fa-plus"></i></div>
+    </div>
   </div>
 
   <div id="lightbox">
@@ -398,7 +416,6 @@
     request.onsuccess = function(e) {
       db = e.target.result;
       checkSessionUser();
-      renderGallery();
     };
 
     function toggleTheme() {
@@ -421,54 +438,63 @@
       isMusicPlaying = !isMusicPlaying;
     }
 
-    // NEW: Handle Profile Click (View Info or Logout)
+    // UPDATED: Handle Profile View and Logout Management
     function handleProfileClick() {
       const savedUser = localStorage.getItem("session_user");
       if (savedUser) {
-        if (confirm(`👤 प्रोफाइल: ${savedUser}\n\nक्या आप लॉग आउट (Logout) करना चाहते हैं?`)) {
+        if (confirm(`👤 Active Profile User: ${savedUser}\n\nक्या आप लॉग आउट करना चाहते हैं?`)) {
           localStorage.removeItem("session_user");
-          document.getElementById("profileName").innerText = "Login / Register";
+          
+          // Lock down app and force show login dashboard again
+          document.getElementById("mainAppContent").style.display = "none";
+          document.getElementById("authModal").style.display = "flex";
+          
+          document.getElementById("authUsername").value = "";
+          document.getElementById("authPassword").value = "";
           alert("आप सफलतापूर्वक लॉग आउट हो चुके हैं।");
-          renderGallery();
         }
-      } else {
-        showAuthModal();
       }
     }
 
-    function showAuthModal() { document.getElementById("authModal").style.display = "flex"; }
-    
     function toggleAuthType() {
       isAuthModeLogin = !isAuthModeLogin;
       document.getElementById("authTitle").innerText = isAuthModeLogin ? "Secure Core Login" : "Create Master Identity Account";
+      document.getElementById("authSubtitle").innerText = isAuthModeLogin ? "Please log in to manage your premium media dashboard" : "Register a new master profile identity key";
     }
     
+    // NEW & UPDATED: Process submission and open the dashboard layout
     function processAuthSubmit() {
       const user = document.getElementById("authUsername").value.trim();
-      if(!user) return alert("कृपया सही यूजरनेम दर्ज करें!");
+      const pass = document.getElementById("authPassword").value.trim();
+      
+      if(!user || !pass) return alert("कृपया यूजरनेम और पासवर्ड दोनों दर्ज करें!");
+      
       localStorage.setItem("session_user", user);
       document.getElementById("profileName").innerText = user;
+      
+      // Hide login overlay dashboard, expose application grid mapping
       document.getElementById("authModal").style.display = "none";
-      alert(`स्वागत है, ${user}! अब आप फोटो अपलोड कर सकते हैं।`);
+      document.getElementById("mainAppContent").style.display = "block";
+      
+      alert(`सफलतापूर्वक प्रमाणीकरण! स्वागत है, ${user}।`);
+      renderGallery();
     }
     
+    // Check state on fresh browser instantiation
     function checkSessionUser() {
       const savedUser = localStorage.getItem("session_user");
       if(savedUser) {
         document.getElementById("profileName").innerText = savedUser;
+        document.getElementById("authModal").style.display = "none";
+        document.getElementById("mainAppContent").style.display = "block";
+        renderGallery();
       } else {
-        document.getElementById("profileName").innerText = "Login / Register";
+        document.getElementById("authModal").style.display = "flex";
+        document.getElementById("mainAppContent").style.display = "none";
       }
     }
 
-    // UPDATED: Guarded Upload Panel
     function toggleUploadPanel() {
-      const savedUser = localStorage.getItem("session_user");
-      if (!savedUser) {
-        alert("🔒 एक्सेस वर्जित! फोटो या वीडियो अपलोड करने के लिए कृपया पहले लॉगिन या रजिस्टर करें।");
-        showAuthModal();
-        return;
-      }
       const panel = document.getElementById("uploadPanel");
       panel.style.display = panel.style.display === "block" ? "none" : "block";
     }
@@ -545,11 +571,6 @@
     function filterGallery() { renderGallery(document.getElementById("searchBar").value); }
 
     document.getElementById("mediaUpload").addEventListener("change", function (event) {
-      const savedUser = localStorage.getItem("session_user");
-      if (!savedUser) {
-        alert("अपलोड करने के लिए पहले लॉगिन करें!");
-        return;
-      }
       const files = event.target.files;
       const album = document.getElementById("albumSelect").value;
       const isLocked = document.getElementById("encryptStatus").checked;
@@ -615,7 +636,6 @@
       }
     }
 
-    // ... (बाकी पुराना कोड सुचारू रूप से वैसे ही काम करेगा)
     function downloadMedia(url, filename) {
       const a = document.createElement("a"); a.href = url; a.download = filename || "download";
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
