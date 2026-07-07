@@ -250,27 +250,6 @@
     let db;
     let currentCategory = "all";
 
- // Setup Media Layout
-        let mediaTag = isVideo
-            ? `<video src="${item.url}" muted onclick="openLightbox(${index})"></video><span class="video-badge"><i class="fa-solid fa-video"></i></span>`
-            : `<img src="${item.url}" alt="Media" onclick="openLightbox(${index})">`;
-
-    // Native Web Share implementation
-function shareMedia(index) {
-    const item = mediaItems[index];
-    if (navigator.share) {
-        navigator.share({
-            title: item.name,
-            text: `Check out this media from my Premium Gallery: ${item.name}`,
-            url: window.location.href
-        }).catch(console.error);
-    } else {
-        alert("Sharing not supported on this browser. Link copied to clipboard!");
-        navigator.clipboard.writeText(window.location.href);
-    }
-}
-
-
     // 1. Initialize IndexedDB (Powerful storage replacement for LocalStorage)
     const request = indexedDB.open("PremiumGalleryDB", 1);
     
