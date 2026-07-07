@@ -7,146 +7,101 @@
   <title>Premium Social Photo & Video Gallery</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    /* 🌙/☀️ Color Themes Variable Architecture */
     :root {
-      --bg-main: #0b0f19;
-      --panel-bg: #0f1422;
-      --glass-bg: rgba(255, 255, 255, 0.03);
-      --glass-bg-hover: rgba(255, 255, 255, 0.07);
-      --glass-border: rgba(255, 255, 255, 0.08);
-      --text-main: #f3f4f6;
-      --text-muted: #8a99ad;
-      --accent-like: #ff4757;
-      --accent-share: #00cec9;
-      --accent-download: #38ef7d;
+      --glass-bg: rgba(255, 255, 255, 0.08);
+      --glass-blur: blur(12px);
+      --glass-border: rgba(255, 255, 255, 0.15);
+      --accent-color: #ff4757;
       --primary-blue: #4a90e2;
-      --card-radius: 16px;
-    }
-
-    [data-theme="light"] {
-      --bg-main: #f4f6f9;
-      --panel-bg: #ffffff;
-      --glass-bg: rgba(0, 0, 0, 0.02);
-      --glass-bg-hover: rgba(0, 0, 0, 0.05);
-      --glass-border: rgba(0, 0, 0, 0.08);
-      --text-main: #1f2937;
-      --text-muted: #6b7280;
-      --primary-blue: #2563eb;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      background: var(--bg-main);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(135deg, #0f0c20, #15102a, #060409);
       min-height: 100vh;
-      color: var(--text-main);
-      padding-bottom: 100px;
-      letter-spacing: -0.01em;
-      transition: background 0.3s, color 0.3s;
+      color: #fff;
+      padding-bottom: 90px;
     }
 
-    /* INITIAL STATE: Main application is hidden until login */
+    /* INITIAL LOCK STATE */
     #mainAppContent {
       display: none;
     }
 
     header {
-      background: var(--panel-bg);
-      backdrop-filter: blur(16px);
+      background: rgba(15, 12, 32, 0.5);
+      backdrop-filter: var(--glass-blur);
       border-bottom: 1px solid var(--glass-border);
-      padding: 15px 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      padding: 20px;
       position: sticky;
       top: 0;
       z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     header h1 {
-      font-size: 20px;
-      font-weight: 700;
-      background: linear-gradient(135deg, #4a90e2 0%, #a5b4fc 100%);
+      font-size: 24px;
+      font-weight: 600;
+      background: linear-gradient(45deg, #ff7675, #74b9ff);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .btn-icon {
+    .logout-btn {
       background: var(--glass-bg);
       border: 1px solid var(--glass-border);
-      color: var(--text-main);
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
+      color: white;
+      padding: 8px 15px;
+      border-radius: 15px;
       cursor: pointer;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 16px;
-      transition: all 0.2s;
-    }
-    .btn-icon:hover { background: var(--glass-bg-hover); }
-
-    /* Auth & Profile Elements */
-    .user-profile-badge {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--glass-bg);
-      padding: 6px 14px;
-      border-radius: 30px;
-      border: 1px solid var(--glass-border);
       font-size: 13px;
-      cursor: pointer;
+      transition: 0.3s;
     }
-    .user-profile-badge i { color: var(--primary-blue); }
+    .logout-btn:hover { background: #ff4757; border-color: #ff4757; }
 
-    /* Initial Landing Page Auth Screen Style */
+    /* AUTH SHIELD OVERLAY */
     .auth-overlay {
-      position: fixed; top:0; left:0; width:100%; height:100%;
-      background: var(--bg-main);
-      display: flex; justify-content: center; align-items: center; z-index: 999;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: #0f0c20; display: flex; justify-content: center; align-items: center; z-index: 999;
     }
     .auth-card {
-      background: var(--panel-bg); border: 1px solid var(--glass-border);
-      padding: 40px 30px; border-radius: var(--card-radius); width: 100%; max-width: 400px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-      text-align: center;
+      background: rgba(255, 255, 255, 0.03); backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border); padding: 35px; border-radius: 20px;
+      width: 100%; max-width: 400px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.5);
     }
-    .auth-card h2 { margin-bottom: 10px; font-size: 24px; color: var(--text-main); }
-    .auth-card p.subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 25px; }
+    .auth-card h2 { margin-bottom: 8px; font-size: 24px; color: #74b9ff; }
+    .auth-card p.subtitle { font-size: 13px; color: #aaa; margin-bottom: 20px; }
     .auth-card input {
-      width: 100%; padding: 14px; margin-bottom: 15px; background: var(--glass-bg);
-      border: 1px solid var(--glass-border); color: var(--text-main); border-radius: 10px; outline: none;
-      font-size: 14px; transition: border-color 0.2s;
+      width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.3);
+      border: 1px solid var(--glass-border); color: white; border-radius: 10px; outline: none; font-size: 14px;
     }
     .auth-card input:focus { border-color: var(--primary-blue); }
+    
     .auth-submit-btn {
-      width: 100%; padding: 14px; background: var(--primary-blue); color: white;
-      border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s;
-      font-size: 15px; margin-top: 5px;
+      width: 100%; padding: 12px; background: var(--primary-blue); color: white;
+      border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 14px;
     }
-    .auth-submit-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .auth-submit-btn:hover { opacity: 0.9; }
+
+    #otpSection, #forgotSection { display: none; border-top: 1px dashed var(--glass-border); padding-top: 15px; margin-top: 10px; }
+    .otp-alert-box { background: rgba(74, 144, 226, 0.15); border: 1px solid var(--primary-blue); color: #fff; padding: 10px; border-radius: 8px; font-size: 12px; margin-bottom: 15px; }
 
     .top-controls {
-      max-width: 500px;
-      margin: 30px auto 20px auto;
-      padding: 0 20px;
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 0 15px;
     }
 
     .search-box {
       display: flex;
       background: var(--glass-bg);
       border: 1px solid var(--glass-border);
-      border-radius: 50px;
-      padding: 4px 18px;
+      border-radius: 30px;
+      padding: 5px 15px;
       align-items: center;
     }
 
@@ -154,68 +109,62 @@
       background: transparent;
       border: none;
       outline: none;
-      color: var(--text-main);
+      color: white;
       width: 100%;
-      padding: 12px 0;
-      font-size: 14px;
+      padding: 10px 0;
+      font-size: 15px;
     }
-    .search-box i { color: var(--text-muted); margin-right: 12px; }
+
+    .search-box i { color: #a0a0a0; margin-right: 10px; }
 
     .categories {
       display: flex;
-      gap: 8px;
+      gap: 10px;
       overflow-x: auto;
-      padding: 10px 20px;
-      max-width: 700px;
-      margin: 0 auto 20px auto;
-      scrollbar-width: none;
+      padding: 10px 15px;
+      max-width: 800px;
+      margin: 0 auto;
     }
-    .categories::-webkit-scrollbar { display: none; }
 
     .cat-btn {
       background: var(--glass-bg);
       border: 1px solid var(--glass-border);
-      color: var(--text-muted);
-      padding: 8px 18px;
-      border-radius: 50px;
+      color: #ccc;
+      padding: 10px 20px;
+      border-radius: 20px;
       cursor: pointer;
       white-space: nowrap;
-      font-size: 13px;
-      transition: all 0.2s ease;
+      transition: 0.3s;
     }
 
     .cat-btn.active, .cat-btn:hover {
       background: var(--primary-blue);
-      color: #fff;
+      color: white;
       border-color: var(--primary-blue);
     }
 
     #gallery {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 24px;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 25px;
       padding: 20px;
-      max-width: 1300px;
+      max-width: 1200px;
       margin: 0 auto;
     }
 
     .photo-card {
       background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
       border: 1px solid var(--glass-border);
-      border-radius: var(--card-radius);
+      border-radius: 20px;
       overflow: hidden;
-      transition: all 0.3s ease;
-    }
-
-    .photo-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
 
     .media-container {
       position: relative;
       width: 100%;
-      height: 220px;
+      height: 230px;
       overflow: hidden;
       background: #000;
     }
@@ -231,132 +180,132 @@
       position: absolute;
       top: 12px;
       right: 12px;
-      background: rgba(0, 0, 0, 0.6);
-      padding: 6px 10px;
-      border-radius: 30px;
-      font-size: 11px;
+      background: rgba(0,0,0,0.7);
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 12px;
     }
 
-    .card-info { padding: 16px 16px 12px 16px; }
-    .card-info h3 { font-size: 15px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
-    .card-info .album-tag { font-size: 11px; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; }
+    .card-info { padding: 15px; }
+    .card-info h3 { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .card-info .album-tag { font-size: 12px; color: #a0a0a0; }
 
     .social-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px 16px;
-      border-top: 1px solid var(--glass-border);
+      padding: 10px 15px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
     }
 
-    .social-actions { display: flex; gap: 14px; }
+    .social-actions { display: flex; gap: 15px; }
 
     .action-icon-btn {
-      background: none; border: none; color: var(--text-muted);
-      cursor: pointer; font-size: 15px; display: inline-flex; align-items: center; gap: 6px;
+      background: none;
+      border: none;
+      color: #b0b0b0;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
-    .action-icon-btn.liked i, .action-icon-btn.liked span { color: var(--accent-like); }
 
-    .comments-summary { padding: 0 16px 16px 16px; font-size: 12px; }
-    .comments-list { max-height: 60px; overflow-y: auto; margin-bottom: 10px; }
-    .comment-item { margin-bottom: 4px; color: var(--text-main); }
+    .action-icon-btn.liked i { color: var(--accent-color); }
 
-    .comment-input-box { display: flex; gap: 6px; }
+    .comments-summary { padding: 0 15px 15px 15px; font-size: 12px; }
+    .comment-input-box { display: flex; gap: 5px; margin-top: 8px; }
     .comment-input-box input {
-      flex: 1; background: rgba(0, 0, 0, 0.05); border: 1px solid var(--glass-border);
-      border-radius: 30px; padding: 8px 14px; color: var(--text-main); font-size: 12px; outline: none;
+      flex: 1; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border);
+      border-radius: 15px; padding: 6px 12px; color: white; font-size: 12px;
     }
 
-    /* Floating Action & Upload Panel */
-    .fab-container { position: fixed; bottom: 30px; right: 30px; z-index: 200; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+    .fab-container { position: fixed; bottom: 25px; right: 25px; z-index: 200; display: flex; flex-direction: column; align-items: flex-end; gap: 15px; }
     .upload-options-panel {
-      background: var(--panel-bg); border: 1px solid var(--glass-border);
-      padding: 16px; border-radius: 16px; display: none; width: 240px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      background: rgba(20, 15, 38, 0.95); border: 1px solid var(--glass-border);
+      padding: 15px; border-radius: 20px; display: none;
     }
-    .upload-options-panel h4 { font-size: 14px; margin-bottom: 10px; }
+
     .upload-options-panel select, .upload-options-panel input {
-      width: 100%; background: var(--glass-bg); border: 1px solid var(--glass-border);
-      color: var(--text-main); padding: 10px; margin-bottom: 10px; border-radius: 10px; font-size: 12px; outline: none;
+      width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);
+      color: white; padding: 8px; margin-bottom: 10px; border-radius: 8px;
     }
 
     .fab {
-      width: 56px; height: 56px; background: var(--primary-blue);
+      width: 60px; height: 60px; background: linear-gradient(135deg, #6c5ce7, #a29bfe);
       border-radius: 50%; display: flex; justify-content: center; align-items: center;
-      font-size: 20px; color: #fff; cursor: pointer; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      font-size: 24px; color: white; cursor: pointer; box-shadow: 0 5px 20px rgba(108, 92, 231, 0.4);
     }
 
-    /* Lightbox overlay configuration */
     #lightbox {
       display: none; position: fixed; z-index: 1000; left: 0; top: 0;
-      width: 100%; height: 100%; background: rgba(6, 9, 17, 0.98);
-      justify-content: center; align-items: center; user-select: none;
+      width: 100%; height: 100%; background: rgba(5, 3, 10, 0.98);
+      justify-content: center; align-items: center;
     }
-    .lightbox-content-wrapper { position: relative; max-width: 85%; max-height: 80%; display: flex; justify-content: center; align-items: center; }
-    #lightboxMediaItem img, #lightboxMediaItem video { max-width: 100%; max-height: 82vh; border-radius: 12px; transition: transform 0.2s; }
-    .close-lightbox { position: absolute; top: -50px; right: 0; font-size: 28px; color: #fff; background: none; border: none; cursor: pointer; }
 
-    /* Media Zoom Module CSS */
-    .zoom-controls { position: absolute; top: -54px; left: 0; display: flex; gap: 10px; }
-    .zoom-btn { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; }
-
-    /* Lightbox Swipe/Scroll Module */
-    .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; font-size: 20px; width: 46px; height: 46px; border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; z-index: 1005; }
-    .prev-btn { left: -65px; } .next-btn { right: -65px; }
-
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-      #gallery { grid-template-columns: 1fr; padding: 15px; }
-      .nav-btn { width: 38px; height: 38px; }
-      .prev-btn { left: -15px; background: rgba(0,0,0,0.6); }
-      .next-btn { right: -15px; background: rgba(0,0,0,0.6); }
-    }
+    .lightbox-content-wrapper { position: relative; max-width: 90%; max-height: 80%; }
+    #lightbox img, #lightbox video { max-width: 100%; max-height: 85vh; border-radius: 12px; }
+    .close-lightbox { position: absolute; top: -50px; right: 10px; font-size: 30px; color: white; background: none; border: none; cursor: pointer; }
   </style>
 </head>
 
 <body>
 
-  <audio id="bgMusic" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
-
-  <div class="auth-overlay" id="authModal">
+  <div class="auth-overlay" id="authGateway">
     <div class="auth-card">
-      <div style="font-size: 40px; margin-bottom: 15px;">✨</div>
-      <h2 id="authTitle">Welcome Hub</h2>
-      <p class="subtitle" id="authSubtitle">Please log in to manage your premium media dashboard</p>
+      <div style="font-size: 35px; margin-bottom: 10px;">🔐</div>
+      <h2 id="authFormTitle">Account Login</h2>
+      <p class="subtitle" id="authFormSubtitle">Enter Gmail ID or 10-digit Mobile No.</p>
       
-      <input type="text" id="authUsername" placeholder="Enter Username">
-      <input type="password" id="authPassword" placeholder="Enter Password Key">
-      
-      <button class="auth-submit-btn" onclick="processAuthSubmit()">Authenticate & Enter</button>
-      
-      <p style="text-align: center; font-size: 13px; margin-top: 20px; cursor: pointer; color: var(--primary-blue); font-weight: 500;" onclick="toggleAuthType()">
-        Don't have an account? Register Here
-      </p>
+      <div id="credentialBlock">
+        <input type="text" id="authIdentity" placeholder="Gmail ID or 10-digit Mobile No.">
+        <input type="password" id="authPassword" placeholder="Enter Secure Password">
+        <button class="auth-submit-btn" onclick="validateAndRequestOTP()">Verify Credentials</button>
+        
+        <div style="margin-top: 15px; font-size: 13px; display: flex; justify-content: space-between;">
+          <span style="color: #74b9ff; cursor: pointer;" onclick="toggleAuthMode()" id="switchAuthBtn">Don't have account? Register</span>
+          <span style="color: #ff7675; cursor: pointer;" onclick="openForgotBlock()">Forgot Password?</span>
+        </div>
+      </div>
+
+      <div id="otpSection">
+        <div class="otp-alert-box" id="otpDisplayAlert"></div>
+        <input type="text" id="authOtpInput" placeholder="Enter 4-Digit Security OTP" maxlength="4">
+        <button class="auth-submit-btn" style="background: #2ecc71;" onclick="verifyOtpAndLogin()">Verify OTP & Unlock Hub</button>
+        <button class="auth-submit-btn" style="background: transparent; border: 1px solid var(--glass-border); margin-top: 8px; font-size: 12px;" onclick="resetAuthScreen()">Back</button>
+      </div>
+
+      <div id="forgotSection">
+        <p style="font-size:12px; margin-bottom:10px; color:#aaa;">Verify your ID first to reset your password.</p>
+        <input type="text" id="forgotIdentity" placeholder="Confirm your registered Gmail/Mobile No.">
+        <div id="forgotOtpVerification" style="display:none;">
+          <div class="otp-alert-box" id="forgotOtpDisplay"></div>
+          <input type="text" id="forgotOtpInput" placeholder="Enter Reset OTP Code" maxlength="4">
+          <input type="password" id="forgotNewPassword" placeholder="Enter New Secure Password">
+        </div>
+        <button class="auth-submit-btn" id="forgotActionBtn" onclick="processForgotPasswordVerify()">Verify Identity</button>
+        <button class="auth-submit-btn" style="background: transparent; border: 1px solid var(--glass-border); margin-top: 8px; font-size: 12px;" onclick="resetAuthScreen()">Cancel</button>
+      </div>
+
     </div>
   </div>
 
+
   <div id="mainAppContent">
     <header>
-      <h1>✨ Premium Media Hub</h1>
-      <div class="header-actions">
-        <button class="btn-icon" id="musicToggle" onclick="toggleMusic()" title="Play Background Music"><i class="fa-solid fa-music"></i></button>
-        <button class="btn-icon" id="themeToggle" onclick="toggleTheme()" title="Switch Theme"><i class="fa-solid fa-moon"></i></button>
-        
-        <div class="user-profile-badge" id="profileBadge" onclick="handleProfileClick()" title="Click to View Profile or Logout">
-          <i class="fa-solid fa-user-circle"></i> <span id="profileName">Guest</span>
-        </div>
-      </div>
+      <h1>🌟 Premium Media Hub</h1>
+      <button class="logout-btn" onclick="logoutSession()">Log Out <i class="fa-solid fa-right-from-bracket"></i></button>
     </header>
 
     <div class="top-controls">
       <div class="search-box">
         <i class="fa-solid fa-magnifying-glass"></i>
-        <input type="text" id="searchBar" placeholder="Live search files, titles, albums..." oninput="filterGallery()">
+        <input type="text" id="searchBar" placeholder="Search photos or videos..." oninput="filterGallery()">
       </div>
     </div>
 
     <div class="categories">
-      <button class="cat-btn active" onclick="switchCategory('all', this)">All Feeds</button>
+      <button class="cat-btn active" onclick="switchCategory('all', this)">All</button>
       <button class="cat-btn" onclick="switchCategory('General', this)">General</button>
       <button class="cat-btn" onclick="switchCategory('Friends', this)">Friend's</button>
       <button class="cat-btn" onclick="switchCategory('Travel', this)">Travel</button>
@@ -367,7 +316,6 @@
 
     <div class="fab-container">
       <div class="upload-options-panel" id="uploadPanel">
-        <h4>📂 Upload Dashboard</h4>
         <select id="albumSelect">
           <option value="General">General</option>
           <option value="Friend's">Friend's</option>
@@ -375,125 +323,203 @@
           <option value="Work">Work</option>
         </select>
         <input type="file" id="mediaUpload" accept="image/*,video/*" multiple>
-        <div style="display:flex; gap:5px; align-items:center; font-size:11px;">
-          <input type="checkbox" id="encryptStatus" style="width:auto; margin:0;"> Lock items with Password
-        </div>
       </div>
       <div class="fab" onclick="toggleUploadPanel()"><i class="fa-solid fa-plus"></i></div>
     </div>
-  </div>
 
-  <div id="lightbox">
-    <div class="lightbox-content-wrapper">
-      <div class="zoom-controls">
-        <button class="zoom-btn" onclick="zoomMedia(0.2)"><i class="fa-solid fa-plus"></i></button>
-        <button class="zoom-btn" onclick="zoomMedia(-0.2)"><i class="fa-solid fa-minus"></i></button>
-        <button class="zoom-btn" onclick="resetZoom()"><i class="fa-solid fa-sync-alt"></i></button>
+    <div id="lightbox">
+      <div class="lightbox-content-wrapper">
+        <button class="close-lightbox" onclick="closeLightbox()">&times;</button>
+        <div id="lightboxMediaItem"></div>
       </div>
-      <button class="close-lightbox" onclick="closeLightbox()">&times;</button>
-      <button class="nav-btn prev-btn" onclick="navigateLightbox(-1)"><i class="fa-solid fa-chevron-left"></i></button>
-      <div id="lightboxMediaItem"></div>
-      <button class="nav-btn next-btn" onclick="navigateLightbox(1)"><i class="fa-solid fa-chevron-right"></i></button>
     </div>
   </div>
 
   <script>
     let db;
     let currentCategory = "all";
-    let loadedItems = [];
-    let currentLightboxIndex = -1;
-    let currentScale = 1;
-    let isMusicPlaying = false;
-    let isAuthModeLogin = true;
 
+    // AUTH / SECURITY DATA MODULE STATE 
+    let isLoginMode = true;
+    let generatedOtp = null;
+    let validatedIdentity = null;
+    let validatedPassword = null;
+    
+    let forgotGeneratedOtp = null;
+    let forgotStage = 1; // 1: identity check, 2: otp and new password verification
+
+    // 1. Initialize IndexedDB
     const request = indexedDB.open("PremiumGalleryDB", 1);
+    
     request.onupgradeneeded = function(e) {
       db = e.target.result;
       if (!db.objectStoreNames.contains("media")) {
         db.createObjectStore("media", { keyPath: "id", autoIncrement: true });
       }
     };
+
     request.onsuccess = function(e) {
       db = e.target.result;
-      checkSessionUser();
+      checkUserSessionGate();
     };
 
-    function toggleTheme() {
-      const currentTheme = document.documentElement.getAttribute("data-theme");
-      const targetTheme = currentTheme === "light" ? "dark" : "light";
-      document.documentElement.setAttribute("data-theme", targetTheme);
-      document.getElementById("themeToggle").innerHTML = targetTheme === "light" ? `<i class="fa-solid fa-sun"></i>` : `<i class="fa-solid fa-moon"></i>`;
-    }
-
-    function toggleMusic() {
-      const audio = document.getElementById("bgMusic");
-      const btn = document.getElementById("musicToggle");
-      if(isMusicPlaying) {
-        audio.pause();
-        btn.style.color = "var(--text-main)";
-      } else {
-        audio.play().catch(e => console.log("Interaction required first"));
-        btn.style.color = "var(--accent-share)";
-      }
-      isMusicPlaying = !isMusicPlaying;
-    }
-
-    // UPDATED: Handle Profile View and Logout Management
-    function handleProfileClick() {
-      const savedUser = localStorage.getItem("session_user");
-      if (savedUser) {
-        if (confirm(`👤 Active Profile User: ${savedUser}\n\nक्या आप लॉग आउट करना चाहते हैं?`)) {
-          localStorage.removeItem("session_user");
-          
-          // Lock down app and force show login dashboard again
-          document.getElementById("mainAppContent").style.display = "none";
-          document.getElementById("authModal").style.display = "flex";
-          
-          document.getElementById("authUsername").value = "";
-          document.getElementById("authPassword").value = "";
-          alert("आप सफलतापूर्वक लॉग आउट हो चुके हैं।");
-        }
-      }
-    }
-
-    function toggleAuthType() {
-      isAuthModeLogin = !isAuthModeLogin;
-      document.getElementById("authTitle").innerText = isAuthModeLogin ? "Secure Core Login" : "Create Master Identity Account";
-      document.getElementById("authSubtitle").innerText = isAuthModeLogin ? "Please log in to manage your premium media dashboard" : "Register a new master profile identity key";
-    }
-    
-    // NEW & UPDATED: Process submission and open the dashboard layout
-    function processAuthSubmit() {
-      const user = document.getElementById("authUsername").value.trim();
-      const pass = document.getElementById("authPassword").value.trim();
-      
-      if(!user || !pass) return alert("कृपया यूजरनेम और पासवर्ड दोनों दर्ज करें!");
-      
-      localStorage.setItem("session_user", user);
-      document.getElementById("profileName").innerText = user;
-      
-      // Hide login overlay dashboard, expose application grid mapping
-      document.getElementById("authModal").style.display = "none";
-      document.getElementById("mainAppContent").style.display = "block";
-      
-      alert(`सफलतापूर्वक प्रमाणीकरण! स्वागत है, ${user}।`);
-      renderGallery();
-    }
-    
-    // Check state on fresh browser instantiation
-    function checkSessionUser() {
-      const savedUser = localStorage.getItem("session_user");
-      if(savedUser) {
-        document.getElementById("profileName").innerText = savedUser;
-        document.getElementById("authModal").style.display = "none";
+    // --- SECURITY & CUSTOM ACCOUNT LOGIC SYSTEM ---
+    function checkUserSessionGate() {
+      const activeSession = sessionStorage.getItem("app_authenticated");
+      if(activeSession) {
+        document.getElementById("authGateway").style.display = "none";
         document.getElementById("mainAppContent").style.display = "block";
         renderGallery();
       } else {
-        document.getElementById("authModal").style.display = "flex";
+        document.getElementById("authGateway").style.display = "flex";
         document.getElementById("mainAppContent").style.display = "none";
       }
     }
 
+    function toggleAuthMode() {
+      isLoginMode = !isLoginMode;
+      document.getElementById("authFormTitle").innerText = isLoginMode ? "Account Login" : "Register Account";
+      document.getElementById("authFormSubtitle").innerText = isLoginMode ? "Enter Gmail ID or 10-digit Mobile No." : "Create Identity using Gmail or Mobile Number";
+      document.getElementById("switchAuthBtn").innerText = isLoginMode ? "Don't have account? Register" : "Already registered? Login";
+    }
+
+    function resetAuthScreen() {
+      document.getElementById("credentialBlock").style.display = "block";
+      document.getElementById("otpSection").style.display = "none";
+      document.getElementById("forgotSection").style.display = "none";
+      document.getElementById("forgotOtpVerification").style.display = "none";
+      document.getElementById("authOtpInput").value = "";
+      document.getElementById("forgotOtpInput").value = "";
+      document.getElementById("forgotNewPassword").value = "";
+      document.getElementById("forgotIdentity").value = "";
+      forgotStage = 1;
+      document.getElementById("forgotActionBtn").innerText = "Verify Identity";
+      generatedOtp = null;
+      forgotGeneratedOtp = null;
+    }
+
+    function openForgotBlock() {
+      document.getElementById("credentialBlock").style.display = "none";
+      document.getElementById("otpSection").style.display = "none";
+      document.getElementById("forgotSection").style.display = "block";
+    }
+
+    // Step 1: Validate Form Parameters and Trigger OTP Simulation
+    function validateAndRequestOTP() {
+      const identity = document.getElementById("authIdentity").value.trim();
+      const password = document.getElementById("authPassword").value.trim();
+
+      if(!identity || !password) {
+        return alert("कृपया सभी इनपुट फील्ड्स को पूरा भरें!");
+      }
+
+      // Regex Validation Checks
+      const gmailCheck = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+      const mobileCheck = /^[0-9]{10}$/;
+
+      if(!gmailCheck.test(identity) && !mobileCheck.test(identity)) {
+        return alert("❌ अमान्य एंट्री! कृपया सही Gmail ID (@gmail.com) या 10 अंकों का मोबाइल नंबर डालें।");
+      }
+
+      if(isLoginMode) {
+        // Core Security Logic: Read saved parameters inside localstorage registry
+        const savedPassword = localStorage.getItem("user_pass_" + identity);
+        if(!savedPassword) {
+          return alert("❌ यह यूजर आईडी रजिस्टर्ड नहीं है! कृपया पहले 'Register' करें।");
+        }
+        if(savedPassword !== password) {
+          return alert("❌ गलत पासवर्ड! वेबसाइट ब्लॉक है। अगर आप पासवर्ड भूल गए हैं, तो 'Forgot Password?' विकल्प का उपयोग करें।");
+        }
+      } else {
+        // Registration Mode Security Verification Rules
+        const existingUser = localStorage.getItem("user_pass_" + identity);
+        if(existingUser) {
+          return alert("यह आईडी पहले से रजिस्टर्ड है! कृपया सीधे लॉगिन करें।");
+        }
+      }
+
+      // Generate 4 digit secret security key
+      generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
+      validatedIdentity = identity;
+      validatedPassword = password;
+
+      // Swap view panels to the OTP Screen
+      document.getElementById("credentialBlock").style.display = "none";
+      document.getElementById("otpSection").style.display = "block";
+      document.getElementById("otpDisplayAlert").innerHTML = `📨 <b>लॉगिन सुरक्षा ओटीपी:</b> <span style="font-size:18px; font-weight:700; color:#fff; background:#ff4757; padding:2px 8px; border-radius:5px; margin-left:5px; letter-spacing:2px;">${generatedOtp}</span>`;
+    }
+
+    // Step 2: Final OTP Matching Verification Screen Gateway Trigger
+    function verifyOtpAndLogin() {
+      const typedOtp = document.getElementById("authOtpInput").value.trim();
+      if(!typedOtp) return alert("कृपया प्राप्त हुआ ओटीपी दर्ज करें!");
+
+      if(typedOtp !== generatedOtp) {
+        return alert("❌ अमान्य ओटीपी कोड! कृपया सही ओटीपी प्रविष्ट करें।");
+      }
+
+      if(!isLoginMode) {
+        // Save permanently to the internal database storage index key
+        localStorage.setItem("user_pass_" + validatedIdentity, validatedPassword);
+        alert("✅ रजिस्ट्रेशन सफल! अब आप लॉगिन कर सकते हैं।");
+        isLoginMode = true;
+        toggleAuthMode();
+        resetAuthScreen();
+        return;
+      }
+
+      // Setup session token credentials configuration parameters
+      sessionStorage.setItem("app_authenticated", "true");
+      sessionStorage.setItem("current_user", validatedIdentity);
+      
+      alert(`✅ ओटीपी प्रमाणित! स्वागत है: ${validatedIdentity}`);
+      resetAuthScreen();
+      checkUserSessionGate();
+    }
+
+    // Forgot Password Logic Implementation Flow
+    function processForgotPasswordVerify() {
+      const targetId = document.getElementById("forgotIdentity").value.trim();
+      if(!targetId) return alert("कृपया अपना रजिस्टर्ड ईमेल या मोबाइल नंबर डालें!");
+
+      if(forgotStage === 1) {
+        const checkRecord = localStorage.getItem("user_pass_" + targetId);
+        if(!checkRecord) {
+          return alert("❌ इस नाम का कोई रिकॉर्ड डेटाबेस में मौजूद नहीं है।");
+        }
+
+        forgotGeneratedOtp = Math.floor(1000 + Math.random() * 9000).toString();
+        document.getElementById("forgotOtpVerification").style.display = "block";
+        document.getElementById("forgotOtpDisplay").innerHTML = `🗝️ <b>पासवर्ड रीसेट ओटीपी:</b> <span style="font-size:16px; background:#e67e22; padding:2px 6px; border-radius:4px;">${forgotGeneratedOtp}</span>`;
+        document.getElementById("forgotActionBtn").innerText = "Reset Password Now";
+        forgotStage = 2;
+      } 
+      else if(forgotStage === 2) {
+        const userOtp = document.getElementById("forgotOtpInput").value.trim();
+        const newPass = document.getElementById("forgotNewPassword").value.trim();
+
+        if(!userOtp || !newPass) return alert("कृपया ओटीपी और नया पासवर्ड दोनों दर्ज करें!");
+
+        if(userOtp !== forgotGeneratedOtp) {
+          return alert("❌ गलत रीसेट ओटीपी!");
+        }
+
+        // Overwrite standard storage map structure references data keys
+        localStorage.setItem("user_pass_" + targetId, newPass);
+        alert("🎉 पासवर्ड सफलतापूर्वक बदल दिया गया है! अब नए पासवर्ड से लॉगिन करें।");
+        resetAuthScreen();
+      }
+    }
+
+    function logoutSession() {
+      if(confirm("क्या आप इस सत्र से लॉग आउट करना चाहते हैं?")) {
+        sessionStorage.clear();
+        checkUserSessionGate();
+      }
+    }
+
+
+    // --- MEDIA MANAGEMENT SYSTEM FUNCTIONS (ORIGINAL RESTORED) ---
     function toggleUploadPanel() {
       const panel = document.getElementById("uploadPanel");
       panel.style.display = panel.style.display === "block" ? "none" : "block";
@@ -514,31 +540,29 @@
 
       const transaction = db.transaction(["media"], "readonly");
       const store = transaction.objectStore("media");
-      store.getAll().onsuccess = function(e) {
-        const items = e.target.result;
-        loadedItems = [];
+      const getAllRequest = store.getAll();
+
+      getAllRequest.onsuccess = function() {
+        const items = getAllRequest.result;
         
         items.forEach((item) => {
           if (currentCategory !== "all" && item.album !== currentCategory) return;
           if (query && !item.name.toLowerCase().includes(query)) return;
-
-          loadedItems.push(item);
-          const idx = loadedItems.length - 1;
 
           const card = document.createElement("div");
           card.className = "photo-card";
           const isVideo = item.type && item.type.startsWith("video");
 
           let mediaTag = isVideo 
-            ? `<video src="${item.url}" muted onclick="launchActiveLightbox(${idx})"></video><span class="video-badge"><i class="fa-solid fa-video"></i></span>`
-            : `<img src="${item.url}" alt="Media" onclick="launchActiveLightbox(${idx})">`;
+            ? `<video src="${item.url}" muted onclick="openLightboxFromDb(${item.id})"></video><span class="video-badge"><i class="fa-solid fa-video"></i></span>`
+            : `<img src="${item.url}" alt="Media" onclick="openLightboxFromDb(${item.id})">`;
 
-          let commentsHtml = (item.comments || []).map(c => `<div class="comment-item"><b>User:</b> ${c}</div>`).join("");
+          let commentsHtml = (item.comments || []).map(c => `<div><b>User:</b> ${c}</div>`).join("");
 
           card.innerHTML = `
             <div class="media-container">${mediaTag}</div>
             <div class="card-info">
-              <h3>${item.isLocked ? "🔒 Locked Security Object File" : item.name}</h3>
+              <h3>${item.name}</h3>
               <span class="album-tag"><i class="fa-regular fa-folder"></i> ${item.album}</span>
             </div>
             <div class="social-row">
@@ -551,13 +575,12 @@
                 </button>
               </div>
               <div class="social-actions">
-                <button class="action-icon-btn" style="color:var(--accent-share)" onclick="shareObject('${item.name}')"><i class="fa-solid fa-share-nodes"></i></button>
-                <button class="action-icon-btn" style="color:var(--accent-download)" onclick="downloadMedia('${item.url}', '${item.name}')"><i class="fa-solid fa-download"></i></button>
-                <button class="action-icon-btn" style="color:var(--accent-like)" onclick="deleteMedia(${item.id})"><i class="fa-regular fa-trash-can"></i></button>
+                <button class="action-icon-btn" style="color:#74b9ff" onclick="downloadMedia('${item.url}', '${item.name}')"><i class="fa-solid fa-download"></i></button>
+                <button class="action-icon-btn" style="color:#ff7675" onclick="deleteMedia(${item.id})"><i class="fa-regular fa-trash-can"></i></button>
               </div>
             </div>
             <div class="comments-summary">
-              <div class="comments-list">${commentsHtml}</div>
+              <div style="max-height: 50px; overflow-y:auto;">${commentsHtml}</div>
               <div class="comment-input-box">
                 <input type="text" id="comment-in-${item.id}" placeholder="Add comment..." onkeydown="if(event.key === 'Enter') addComment(${item.id})">
               </div>
@@ -568,12 +591,13 @@
       };
     }
 
-    function filterGallery() { renderGallery(document.getElementById("searchBar").value); }
+    function filterGallery() {
+      renderGallery(document.getElementById("searchBar").value);
+    }
 
     document.getElementById("mediaUpload").addEventListener("change", function (event) {
       const files = event.target.files;
       const album = document.getElementById("albumSelect").value;
-      const isLocked = document.getElementById("encryptStatus").checked;
 
       Array.from(files).forEach(file => {
         const reader = new FileReader();
@@ -588,9 +612,9 @@
             type: file.type,
             likes: 0,
             liked: false,
-            isLocked: isLocked,
             comments: []
           });
+
           transaction.oncomplete = function() { renderGallery(); };
         };
         reader.readAsDataURL(file);
@@ -601,8 +625,10 @@
     function updateItem(id, updateCallback) {
       const transaction = db.transaction(["media"], "readwrite");
       const store = transaction.objectStore("media");
-      store.get(id).onsuccess = function(e) {
-        const item = e.target.result;
+      const request = store.get(id);
+
+      request.onsuccess = function() {
+        const item = request.result;
         updateCallback(item);
         store.put(item);
       };
@@ -631,45 +657,40 @@
     function deleteMedia(id) {
       if(confirm("Delete this file permanently?")) {
         const transaction = db.transaction(["media"], "readwrite");
-        transaction.objectStore("media").delete(id);
+        db.transaction(["media"], "readwrite").objectStore("media").delete(id);
         transaction.oncomplete = function() { renderGallery(); };
       }
     }
 
     function downloadMedia(url, filename) {
-      const a = document.createElement("a"); a.href = url; a.download = filename || "download";
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename || "download";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     }
 
-    function shareObject(title) {
-      if (navigator.share) { navigator.share({ title: title, url: window.location.href }).catch(err => console.log(err)); } 
-      else { navigator.clipboard.writeText(window.location.href); alert("Link copied!"); }
+    function openLightboxFromDb(id) {
+      const store = db.transaction(["media"], "readonly").objectStore("media");
+      store.get(id).onsuccess = function(e) {
+        const item = e.target.result;
+        const viewerContainer = document.getElementById("lightboxMediaItem");
+        const isVideo = item.type && item.type.startsWith("video");
+
+        if (isVideo) {
+          viewerContainer.innerHTML = `<video src="${item.url}" controls autoplay style="max-width:100%; max-height:85vh;"></video>`;
+        } else {
+          viewerContainer.innerHTML = `<img src="${item.url}" alt="View">`;
+        }
+        document.getElementById("lightbox").style.display = "flex";
+      };
     }
 
-    function launchActiveLightbox(idx) {
-      if(idx < 0 || idx >= loadedItems.length) return;
-      const targetObj = loadedItems[idx];
-      if(targetObj.isLocked) { const verifyPass = prompt("Enter Object Passkey to Unlock Data:"); if(!verifyPass) return; }
-      currentLightboxIndex = idx; resetZoom();
-      const viewerContainer = document.getElementById("lightboxMediaItem");
-      const isVideo = targetObj.type && targetObj.type.startsWith("video");
-      if (isVideo) { viewerContainer.innerHTML = `<video id="activeMedia" src="${targetObj.url}" controls autoplay></video>`; } 
-      else { viewerContainer.innerHTML = `<img id="activeMedia" src="${targetObj.url}" alt="View">`; }
-      document.getElementById("lightbox").style.display = "flex";
+    function closeLightbox() {
+      document.getElementById("lightboxMediaItem").innerHTML = "";
+      document.getElementById("lightbox").style.display = "none";
     }
-
-    function navigateLightbox(dir) { let nextIndex = currentLightboxIndex + dir; if (nextIndex >= 0 && nextIndex < loadedItems.length) launchActiveLightbox(nextIndex); }
-    function zoomMedia(amount) { const media = document.getElementById("activeMedia"); if (!media || media.tagName === "VIDEO") return; currentScale += amount; if (currentScale < 0.6) currentScale = 0.6; if (currentScale > 3.5) currentScale = 3.5; media.style.transform = `scale(${currentScale})`; }
-    function resetZoom() { const media = document.getElementById("activeMedia"); if (media) media.style.transform = `scale(1)`; }
-    function closeLightbox() { document.getElementById("lightboxMediaItem").innerHTML = ""; document.getElementById("lightbox").style.display = "none"; }
-
-    document.addEventListener("keydown", function(e) {
-      if (document.getElementById("lightbox").style.display === "flex") {
-        if (e.key === "ArrowRight") navigateLightbox(1);
-        if (e.key === "ArrowLeft") navigateLightbox(-1);
-        if (e.key === "Escape") closeLightbox();
-      }
-    });
   </script>
 </body>
 </html>
