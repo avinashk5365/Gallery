@@ -191,15 +191,100 @@
       font-size: 24px; color: white; cursor: pointer; box-shadow: 0 5px 20px rgba(108, 92, 231, 0.4);
     }
 
+    /* --- LIGHTBOX MODES FOR ZOOM AND NAV --- */
     #lightbox {
       display: none; position: fixed; z-index: 1000; left: 0; top: 0;
       width: 100%; height: 100%; background: rgba(5, 3, 10, 0.98);
       justify-content: center; align-items: center;
+      user-select: none;
     }
 
-    .lightbox-content-wrapper { position: relative; max-width: 90%; max-height: 80%; }
-    #lightbox img, #lightbox video { max-width: 100%; max-height: 85vh; border-radius: 12px; }
-    .close-lightbox { position: absolute; top: -50px; right: 10px; font-size: 30px; color: white; background: none; border: none; cursor: pointer; }
+    .lightbox-content-wrapper { 
+      position: relative; 
+      max-width: 90%; 
+      max-height: 80%; 
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #lightboxMediaItem {
+      overflow: hidden;
+      border-radius: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      max-width: 100%;
+      max-height: 85vh;
+    }
+
+    #lightbox img, #lightbox video { 
+      max-width: 100%; 
+      max-height: 85vh; 
+      border-radius: 12px; 
+      transition: transform 0.2s ease;
+    }
+
+    .close-lightbox { position: absolute; top: -60px; right: 10px; font-size: 30px; color: white; background: none; border: none; cursor: pointer; z-index: 1010; }
+
+    /* Zoom Controls UI */
+    .zoom-controls {
+      position: absolute;
+      top: -60px;
+      left: 10px;
+      display: flex;
+      gap: 15px;
+      z-index: 1010;
+    }
+
+    .zoom-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--glass-border);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.2s;
+    }
+
+    .zoom-btn:hover {
+      background: var(--primary-blue);
+    }
+
+    /* Navigation Scroll Buttons */
+    .nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--glass-border);
+      color: white;
+      font-size: 24px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: 0.3s;
+      z-index: 1005;
+    }
+
+    .nav-btn:hover {
+      background: var(--primary-blue);
+      box-shadow: 0 0 15px rgba(74, 144, 226, 0.5);
+    }
+
+    .prev-btn { left: -70px; }
+    .next-btn { right: -70px; }
+
+    @media (max-width: 768px) {
+      .nav-btn { width: 40px; height: 40px; font-size: 18px; }
+      .prev-btn { left: -20px; background: rgba(0,0,0,0.5); }
+      .next-btn { right: -20px; background: rgba(0,0,0,0.5); }
+    }
   </style>
 </head>
 
@@ -239,18 +324,31 @@
     <div class="fab" onclick="toggleUploadPanel()"><i class="fa-solid fa-plus"></i></div>
   </div>
 
+  <!-- LIGHTBOX WITH SCROLL & ZOOM CONTROLS -->
   <div id="lightbox">
     <div class="lightbox-content-wrapper">
+      <div class="zoom-controls">
+        <button class="zoom-btn" onclick="zoomMedia(0.2)" title="Zoom In"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+        <button class="zoom-btn" onclick="zoomMedia(-0.2)" title="Zoom Out"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+        <button class="zoom-btn" onclick="resetZoom()" title="Reset"><i class="fa-solid fa-rotate-left"></i></button>
+      </div>
+
       <button class="close-lightbox" onclick="closeLightbox()">&times;</button>
+      
+      <button class="nav-btn prev-btn" onclick="navigateLightbox(-1)" title="Previous"><i class="fa-solid fa-chevron-left"></i></button>
       <div id="lightboxMediaItem"></div>
+      <button class="nav-btn next-btn" onclick="navigateLightbox(1)" title="Next"><i class="fa-solid fa-chevron-right"></i></button>
     </div>
   </div>
 
   <script>
     let db;
     let currentCategory = "all";
+    let loadedItems = []; // Lightbox navigation ke liye list track karne ke liye
+    let currentLightboxIndex = -1; // Current open image ka index
+    let currentScale = 1; // Zoom Level save karne ke liye
 
-    // 1. Initialize IndexedDB (Powerful storage replacement for LocalStorage)
+    // 1. Initialize IndexedDB
     const request = indexedDB.open("PremiumGalleryDB", 1);
     
     request.onupgradeneeded = function(e) {
@@ -290,18 +388,23 @@
 
       getAllRequest.onsuccess = function() {
         const items = getAllRequest.result;
+        loadedItems = []; // Clear array before refilling
         
         items.forEach((item) => {
           if (currentCategory !== "all" && item.album !== currentCategory) return;
           if (query && !item.name.toLowerCase().includes(query)) return;
+
+          // Lightbox tracking ke liye push karein
+          loadedItems.push(item);
+          const itemIndex = loadedItems.length - 1;
 
           const card = document.createElement("div");
           card.className = "photo-card";
           const isVideo = item.type && item.type.startsWith("video");
 
           let mediaTag = isVideo 
-            ? `<video src="${item.url}" muted onclick="openLightboxFromDb(${item.id})"></video><span class="video-badge"><i class="fa-solid fa-video"></i></span>`
-            : `<img src="${item.url}" alt="Media" onclick="openLightboxFromDb(${item.id})">`;
+            ? `<video src="${item.url}" muted onclick="openLightboxByIndex(${itemIndex})"></video><span class="video-badge"><i class="fa-solid fa-video"></i></span>`
+            : `<img src="${item.url}" alt="Media" onclick="openLightboxByIndex(${itemIndex})">`;
 
           let commentsHtml = (item.comments || []).map(c => `<div><b>User:</b> ${c}</div>`).join("");
 
@@ -369,7 +472,7 @@
       toggleUploadPanel();
     });
 
-    // 4. Update Actions (Like, Comment, Delete)
+    // 4. Update Actions
     function updateItem(id, updateCallback) {
       const transaction = db.transaction(["media"], "readwrite");
       const store = transaction.objectStore("media");
@@ -419,26 +522,65 @@
       document.body.removeChild(a);
     }
 
-    function openLightboxFromDb(id) {
-      const store = db.transaction(["media"], "readonly").objectStore("media");
-      store.get(id).onsuccess = function(e) {
-        const item = e.target.result;
-        const viewerContainer = document.getElementById("lightboxMediaItem");
-        const isVideo = item.type && item.type.startsWith("video");
+    // --- NEW: LIGHTBOX SCROLL & ZOOM LOGIC ---
+    function openLightboxByIndex(index) {
+      if (index < 0 || index >= loadedItems.length) return;
+      currentLightboxIndex = index;
+      resetZoom(); // Reset zoom state when changing image
 
-        if (isVideo) {
-          viewerContainer.innerHTML = `<video src="${item.url}" controls autoplay style="max-width:100%; max-height:85vh;"></video>`;
-        } else {
-          viewerContainer.innerHTML = `<img src="${item.url}" alt="View">`;
-        }
-        document.getElementById("lightbox").style.display = "flex";
-      };
+      const item = loadedItems[index];
+      const viewerContainer = document.getElementById("lightboxMediaItem");
+      const isVideo = item.type && item.type.startsWith("video");
+
+      if (isVideo) {
+        viewerContainer.innerHTML = `<video id="activeMedia" src="${item.url}" controls autoplay></video>`;
+      } else {
+        viewerContainer.innerHTML = `<img id="activeMedia" src="${item.url}" alt="View">`;
+      }
+      document.getElementById("lightbox").style.display = "flex";
+    }
+
+    // Scroll karne (Next / Prev) ke liye function
+    function navigateLightbox(direction) {
+      let newIndex = currentLightboxIndex + direction;
+      if (newIndex >= 0 && newIndex < loadedItems.length) {
+        openLightboxByIndex(newIndex);
+      }
+    }
+
+    // Zoom Functions
+    function zoomMedia(amount) {
+      const media = document.getElementById("activeMedia");
+      if (!media || media.tagName === "VIDEO") return; // Videos standard zoom avoid karte hain
+      
+      currentScale += amount;
+      // Limits zoom between 0.5x and 4x
+      if (currentScale < 0.5) currentScale = 0.5;
+      if (currentScale > 4) currentScale = 4;
+      
+      media.style.transform = `scale(${currentScale})`;
+    }
+
+    function resetZoom() {
+      currentScale = 1;
+      const media = document.getElementById("activeMedia");
+      if (media) media.style.transform = `scale(${currentScale})`;
     }
 
     function closeLightbox() {
       document.getElementById("lightboxMediaItem").innerHTML = "";
       document.getElementById("lightbox").style.display = "none";
+      currentLightboxIndex = -1;
     }
+
+    // Keyboard Shortcuts support (Arrow keys and Escape)
+    document.addEventListener("keydown", function(e) {
+      if (document.getElementById("lightbox").style.display === "flex") {
+        if (e.key === "ArrowRight") navigateLightbox(1);
+        if (e.key === "ArrowLeft") navigateLightbox(-1);
+        if (e.key === "Escape") closeLightbox();
+      }
+    });
   </script>
 </body>
 </html>
