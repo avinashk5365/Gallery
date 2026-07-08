@@ -372,29 +372,16 @@
     firebase.initializeApp(firebaseConfig);
     const rtdb = firebase.database();
 
-    let db;
     let currentCategory = "all";
-
     let isLoginMode = true;
     let generatedOtp = null;
     let validatedIdentity = null;
     let validatedPassword = null;
-    
     let forgotGeneratedOtp = null;
     let forgotStage = 1;
 
-    // --- INITIALIZE INDEXEDDB ---
-    const request = indexedDB.open("PremiumGalleryDB", 1);
-    
-    request.onupgradeneeded = function(e) {
-      db = e.target.result;
-      if (!db.objectStoreNames.contains("media")) {
-        db.createObjectStore("media", { keyPath: "id", autoIncrement: true });
-      }
-    };
-
-    request.onsuccess = function(e) {
-      db = e.target.result;
+    // पेज लोड होने पर सेशन चेक करें
+    window.onload = function() {
       checkUserSessionGate();
     };
 
@@ -538,7 +525,7 @@
         const userOtp = document.getElementById("forgotOtpInput").value.trim();
         const newPass = document.getElementById("forgotNewPassword").value.trim();
 
-        if(!userOtp || !newPass) return alert("कृपया ओटीपी और नया पासवर्ड दोनों दर्ज करें!");
+        if(!userOtp || !newPass) return alert("कृपया ओटीपी और नया密码 दोनों दर्ज करें!");
 
         if(userOtp !== forgotGeneratedOtp) {
           return alert("❌ गलत रीसेट ओटीपी!");
@@ -562,7 +549,7 @@
       }
     }
 
-    // --- MEDIA CONTROL BOARD ---
+    // --- NEW CLOUD MEDIA BOARD (FIREBASE POWERED) ---
     function toggleUploadPanel() {
       const panel = document.getElementById("uploadPanel");
       panel.style.display = panel.style.display === "block" ? "none" : "block";
@@ -575,20 +562,23 @@
       renderGallery();
     }
 
+    // FIREBASE से मीडिया लोड करके रेंडर करना
     function renderGallery(filterText = "") {
-      if (!db) return;
       const gallery = document.getElementById("gallery");
       gallery.innerHTML = "";
       const query = filterText.toLowerCase();
 
-      const transaction = db.transaction(["media"], "readonly");
-      const store = transaction.objectStore("media");
-      const getAllRequest = store.getAll();
+      const currentUser = sessionStorage.getItem("current_user");
+      if(!currentUser) return;
+      const safeKey = currentUser.replace(/[.#$[\]]/g, "_");
 
-      getAllRequest.onsuccess = function() {
-        const items = getAllRequest.result;
-        
-        items.forEach((item) => {
+      rtdb.ref('user_gallery/' + safeKey).once('value').then((snapshot) => {
+        if(!snapshot.exists()) return;
+
+        snapshot.forEach((childSnapshot) => {
+          const itemKey = childSnapshot.key;
+          const item = childSnapshot.val();
+
           if (currentCategory !== "all" && item.album !== currentCategory) return;
           if (query && !item.name.toLowerCase().includes(query)) return;
 
@@ -597,8 +587,8 @@
           const isVideo = item.type && item.type.startsWith("video");
 
           let mediaTag = isVideo 
-            ? `<video src="${item.url}" muted onclick="openLightboxFromDb(${item.id})"></video><span class="video-badge"><i class="fa-solid fa-video"></i></span>`
-            : `<img src="${item.url}" alt="Media" onclick="openLightboxFromDb(${item.id})">`;
+            ? `<video src="${item.url}" muted onclick="openLightboxFromCloud('${itemKey}')"></video><span class="video-badge"><i class="fa-solid fa-video"></i></span>`
+            : `<img src="${item.url}" alt="Media" onclick="openLightboxFromCloud('${itemKey}')">`;
 
           let commentsHtml = (item.comments || []).map(c => `<div><b>User:</b> ${c}</div>`).join("");
 
@@ -610,112 +600,121 @@
             </div>
             <div class="social-row">
               <div class="social-actions">
-                <button class="action-icon-btn ${item.liked ? 'liked' : ''}" onclick="toggleLike(${item.id})">
+                <button class="action-icon-btn ${item.liked ? 'liked' : ''}" onclick="toggleLike('${itemKey}')">
                   <i class="fa-${item.liked ? 'solid' : 'regular'} fa-heart"></i> <span>${item.likes || 0}</span>
                 </button>
-                <button class="action-icon-btn" onclick="document.getElementById('comment-in-${item.id}').focus()">
+                <button class="action-icon-btn" onclick="document.getElementById('comment-in-${itemKey}').focus()">
                   <i class="fa-regular fa-comment"></i> <span>${item.comments ? item.comments.length : 0}</span>
                 </button>
-                <button class="action-icon-btn" style="color:#2ecc71" onclick="shareMedia(${item.id}, '${item.name}')" title="Share Content">
+                <button class="action-icon-btn" style="color:#2ecc71" onclick="shareMedia('${itemKey}', '${item.name}')" title="Share Content">
                   <i class="fa-solid fa-share-nodes"></i>
                 </button>
               </div>
               <div class="social-actions">
                 <button class="action-icon-btn" style="color:#74b9ff" onclick="downloadMedia('${item.url}', '${item.name}')"><i class="fa-solid fa-download"></i></button>
-                <button class="action-icon-btn" style="color:#ff7675" onclick="deleteMedia(${item.id})"><i class="fa-regular fa-trash-can"></i></button>
+                <button class="action-icon-btn" style="color:#ff7675" onclick="deleteMedia('${itemKey}')"><i class="fa-regular fa-trash-can"></i></button>
               </div>
             </div>
             <div class="comments-summary">
               <div class="comments-list-box">${commentsHtml}</div>
               <div class="comment-input-box">
-                <input type="text" id="comment-in-${item.id}" placeholder="Add comment..." onkeydown="if(event.key === 'Enter') addComment(${item.id})">
+                <input type="text" id="comment-in-${itemKey}" placeholder="Add comment..." onkeydown="if(event.key === 'Enter') addComment('${itemKey}')">
               </div>
             </div>
           `;
           gallery.appendChild(card);
         });
-      };
+      });
     }
 
     function filterGallery() {
       renderGallery(document.getElementById("searchBar").value);
     }
 
+    // मीडिया को सीधे FIREBASE पर अपलोड करना
     document.getElementById("mediaUpload").addEventListener("change", function (event) {
       const files = event.target.files;
       const album = document.getElementById("albumSelect").value;
-      if(!files.length) return;
+      const currentUser = sessionStorage.getItem("current_user");
 
-      let loadedCount = 0;
+      if(!files.length || !currentUser) return;
+      const safeKey = currentUser.replace(/[.#$[\]]/g, "_");
+
+      let uploadPromises = [];
+
       Array.from(files).forEach(file => {
         const reader = new FileReader();
-        reader.onload = function (e) {
-          const transaction = db.transaction(["media"], "readwrite");
-          const store = transaction.objectStore("media");
-          
-          store.add({
-            name: file.name,
-            album: album,
-            url: e.target.result,
-            type: file.type,
-            likes: 0,
-            liked: false,
-            comments: []
-          });
-
-          transaction.oncomplete = function() { 
-            loadedCount++;
-            if(loadedCount === files.length) {
-              renderGallery(); 
-            }
+        const promise = new Promise((resolve) => {
+          reader.onload = function (e) {
+            rtdb.ref('user_gallery/' + safeKey).push({
+              name: file.name,
+              album: album,
+              url: e.target.result,
+              type: file.type,
+              likes: 0,
+              liked: false,
+              comments: []
+            }).then(() => resolve());
           };
-        };
-        reader.readAsDataURL(file);
+          reader.readAsDataURL(file);
+        });
+        uploadPromises.push(promise);
+      });
+
+      Promise.all(uploadPromises).then(() => {
+        renderGallery();
       });
       toggleUploadPanel();
     });
 
-    function toggleLike(id) {
-      const transaction = db.transaction(["media"], "readwrite");
-      const store = transaction.objectStore("media");
-      const req = store.get(id);
+    function toggleLike(itemKey) {
+      const currentUser = sessionStorage.getItem("current_user");
+      const safeKey = currentUser.replace(/[.#$[\]]/g, "_");
+      const itemRef = rtdb.ref('user_gallery/' + safeKey + '/' + itemKey);
 
-      req.onsuccess = function() {
-        const item = req.result;
-        item.liked = !item.liked;
-        item.likes = (item.likes || 0) + (item.liked ? 1 : -1);
-        store.put(item);
-      };
-      transaction.oncomplete = function() { renderGallery(); };
+      itemRef.once('value').then((snapshot) => {
+        const item = snapshot.val();
+        const newLiked = !item.liked;
+        const newLikes = (item.likes || 0) + (newLiked ? 1 : -1);
+
+        itemRef.update({
+          liked: newLiked,
+          likes: newLikes
+        }).then(() => renderGallery());
+      });
     }
 
-    function addComment(id) {
-      const input = document.getElementById(`comment-in-${id}`);
+    function addComment(itemKey) {
+      const input = document.getElementById(`comment-in-${itemKey}`);
       const text = input.value.trim();
       if (text === "") return;
 
-      const transaction = db.transaction(["media"], "readwrite");
-      const store = transaction.objectStore("media");
-      const req = store.get(id);
+      const currentUser = sessionStorage.getItem("current_user");
+      const safeKey = currentUser.replace(/[.#$[\]]/g, "_");
+      const itemRef = rtdb.ref('user_gallery/' + safeKey + '/' + itemKey);
 
-      req.onsuccess = function() {
-        const item = req.result;
+      itemRef.once('value').then((snapshot) => {
+        const item = snapshot.val();
         if (!item.comments) item.comments = [];
         item.comments.push(text);
-        store.put(item);
-      };
-      
-      transaction.oncomplete = function() { 
-        input.value = "";
-        renderGallery(); 
-      };
+
+        itemRef.update({
+          comments: item.comments
+        }).then(() => {
+          input.value = "";
+          renderGallery();
+        });
+      });
     }
 
-    function deleteMedia(id) {
-      if(confirm("Delete this file permanently?")) {
-        const transaction = db.transaction(["media"], "readwrite");
-        transaction.objectStore("media").delete(id);
-        transaction.oncomplete = function() { renderGallery(); };
+    function deleteMedia(itemKey) {
+      if(confirm("Delete this file permanently from Cloud?")) {
+        const currentUser = sessionStorage.getItem("current_user");
+        const safeKey = currentUser.replace(/[.#$[\]]/g, "_");
+        
+        rtdb.ref('user_gallery/' + safeKey + '/' + itemKey).remove().then(() => {
+          renderGallery();
+        });
       }
     }
 
@@ -728,10 +727,12 @@
       document.body.removeChild(a);
     }
 
-    function shareMedia(id, filename) {
-      const store = db.transaction(["media"], "readonly").objectStore("media");
-      store.get(id).onsuccess = function(e) {
-        const item = e.target.result;
+    function shareMedia(itemKey, filename) {
+      const currentUser = sessionStorage.getItem("current_user");
+      const safeKey = currentUser.replace(/[.#$[\]]/g, "_");
+
+      rtdb.ref('user_gallery/' + safeKey + '/' + itemKey).once('value').then((snapshot) => {
+        const item = snapshot.val();
         if (navigator.share) {
           fetch(item.url)
             .then(res => res.blob())
@@ -753,13 +754,15 @@
           navigator.clipboard.writeText(window.location.href);
           alert("📋 लिंक क्लिपबोर्ड पर कॉपी हो गया है!");
         }
-      };
+      });
     }
 
-    function openLightboxFromDb(id) {
-      const store = db.transaction(["media"], "readonly").objectStore("media");
-      store.get(id).onsuccess = function(e) {
-        const item = e.target.result;
+    function openLightboxFromCloud(itemKey) {
+      const currentUser = sessionStorage.getItem("current_user");
+      const safeKey = currentUser.replace(/[.#$[\]]/g, "_");
+
+      rtdb.ref('user_gallery/' + safeKey + '/' + itemKey).once('value').then((snapshot) => {
+        const item = snapshot.val();
         const viewerContainer = document.getElementById("lightboxMediaItem");
         const isVideo = item.type && item.type.startsWith("video");
 
@@ -769,7 +772,7 @@
           viewerContainer.innerHTML = `<img src="${item.url}" alt="View">`;
         }
         document.getElementById("lightbox").style.display = "flex";
-      };
+      });
     }
 
     function closeLightbox() {
