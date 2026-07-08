@@ -121,7 +121,7 @@
 
     .search-box i { color: #a0a0a0; margin-right: 10px; }
 
-    /* कैटेगरीज के लिए स्मूथ हॉरिजॉन्टल स्क्रॉलिंग */
+    /* स्क्रॉलिंग सपोर्ट के लिए अपडेटेड कैटेगरीज सीएसएस */
     .categories {
       display: flex;
       gap: 10px;
@@ -225,17 +225,16 @@
 
     .comments-summary { padding: 0 15px 15px 15px; font-size: 12px; }
     
-    /* कमेंट्स के लिए वर्टिकल स्क्रॉलिंग */
-    .comments-list-box {
-      max-height: 60px; 
+    /* कमेंट्स स्क्रॉलिंग के लिए नया बॉक्स सीएसएस */
+    .comments-scroll-box {
+      max-height: 50px; 
       overflow-y: auto;
       scroll-behavior: smooth;
-      padding-right: 5px;
     }
-    .comments-list-box::-webkit-scrollbar {
-      width: 4px;
+    .comments-scroll-box::-webkit-scrollbar {
+      width: 3px;
     }
-    .comments-list-box::-webkit-scrollbar-thumb {
+    .comments-scroll-box::-webkit-scrollbar-thumb {
       background: var(--glass-border);
       border-radius: 10px;
     }
@@ -380,7 +379,7 @@
     let db;
     let currentCategory = "all";
 
-    // AUTH MODULE STATE 
+    // AUTH / SECURITY DATA MODULE STATE 
     let isLoginMode = true;
     let generatedOtp = null;
     let validatedIdentity = null;
@@ -389,7 +388,7 @@
     let forgotGeneratedOtp = null;
     let forgotStage = 1;
 
-    // Initialize IndexedDB
+    // 1. Initialize IndexedDB
     const request = indexedDB.open("PremiumGalleryDB", 1);
     
     request.onupgradeneeded = function(e) {
@@ -404,6 +403,7 @@
       checkUserSessionGate();
     };
 
+    // --- SECURITY & ONLINE CLOUD ACCOUNT LOGIC SYSTEM ---
     function checkUserSessionGate() {
       const activeSession = sessionStorage.getItem("app_authenticated");
       if(activeSession) {
@@ -426,6 +426,7 @@
     function resetAuthScreen() {
       document.getElementById("credentialBlock").style.display = "block";
       document.getElementById("otpSection").style.display = "none";
+      document.getElementById("forgotSection").style.display = "block"; // Reset target handler fallback
       document.getElementById("forgotSection").style.display = "none";
       document.getElementById("forgotOtpVerification").style.display = "none";
       document.getElementById("authOtpInput").value = "";
@@ -456,7 +457,7 @@
       const mobileCheck = /^[0-9]{10}$/;
 
       if(!gmailCheck.test(identity) && !mobileCheck.test(identity)) {
-        return alert("❌ अमान्य एंट्री! कृपया सही Gmail ID या 10 अंकों का मोबाइल नंबर डालें।");
+        return alert("❌ अमान्य एंट्री! कृपया सही Gmail ID (@gmail.com) या 10 अंकों का मोबाइल नंबर डालें।");
       }
 
       const safeKey = identity.replace(/[.#$[\]]/g, "_");
@@ -469,11 +470,11 @@
             return alert("❌ यह यूजर आईडी रजिस्टर्ड नहीं है! कृपया पहले 'Register' करें।");
           }
           if(userData.password !== password) {
-            return alert("❌ गलत पासवर्ड!");
+            return alert("❌ गलत पासवर्ड! अगर आप पासवर्ड भूल गए हैं, तो 'Forgot Password?' का उपयोग करें।");
           }
         } else {
           if(userData) {
-            return alert("यह आईडी पहले से रजिस्टर्ड है!");
+            return alert("यह आईडी पहले से रजिस्टर्ड है! कृपया सीधे लॉगिन करें।");
           }
         }
 
@@ -494,7 +495,7 @@
       if(!typedOtp) return alert("कृपया प्राप्त हुआ ओटीपी दर्ज करें!");
 
       if(typedOtp !== generatedOtp) {
-        return alert("❌ अमान्य ओटीपी कोड!");
+        return alert("❌ अमान्य ओटीपी कोड! कृपया सही ओटीपी प्रविष्ट करें।");
       }
 
       const safeKey = validatedIdentity.replace(/[.#$[\]]/g, "_");
@@ -553,7 +554,7 @@
         rtdb.ref('users/' + safeKey).update({
           password: newPass
         }).then(() => {
-          alert("🎉 पासवर्ड सफलतापूर्वक बदल दिया गया है!");
+          alert("🎉 पासवर्ड सफलतापूर्वक बदल दिया गया है! अब नए पासवर्ड से लॉगिन करें।");
           resetAuthScreen();
         }).catch((err) => {
           alert("पासवर्ड रीसेट करने में समस्या आई: " + err.message);
@@ -568,6 +569,7 @@
       }
     }
 
+
     // --- MEDIA MANAGEMENT SYSTEM FUNCTIONS ---
     function toggleUploadPanel() {
       const panel = document.getElementById("uploadPanel");
@@ -581,6 +583,7 @@
       renderGallery();
     }
 
+    // शेयर बटन और स्क्रॉल बॉक्स के साथ रेंडर गैलरी फ़ंक्शन
     function renderGallery(filterText = "") {
       if (!db) return;
       const gallery = document.getElementById("gallery");
@@ -608,6 +611,7 @@
 
           let commentsHtml = (item.comments || []).map(c => `<div><b>User:</b> ${c}</div>`).join("");
 
+          // सोशल एक्शन्स रो में नेटिव शेयर बटन (fa-share-nodes) जोड़ा गया है
           card.innerHTML = `
             <div class="media-container">${mediaTag}</div>
             <div class="card-info">
@@ -632,7 +636,7 @@
               </div>
             </div>
             <div class="comments-summary">
-              <div class="comments-list-box">${commentsHtml}</div>
+              <div class="comments-scroll-box">${commentsHtml}</div>
               <div class="comment-input-box">
                 <input type="text" id="comment-in-${item.id}" placeholder="Add comment..." onkeydown="if(event.key === 'Enter') addComment(${item.id})">
               </div>
@@ -723,7 +727,7 @@
       document.body.removeChild(a);
     }
 
-    // वेब शेयर फंक्शन
+    // नया वेब शेयर एपीआई फंक्शनलिटी लॉजिक
     function shareMedia(id, filename) {
       const store = db.transaction(["media"], "readonly").objectStore("media");
       store.get(id).onsuccess = function(e) {
