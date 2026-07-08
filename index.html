@@ -133,7 +133,7 @@
       -webkit-overflow-scrolling: touch;
     }
     .categories::-webkit-scrollbar {
-      display: none; /* स्क्रॉलबार छिपाने के लिए */
+      display: none;
     }
 
     .cat-btn {
@@ -225,7 +225,7 @@
 
     .comments-summary { padding: 0 15px 15px 15px; font-size: 12px; }
     
-    /* कमेंट बॉक्स में वर्टिकल स्क्रॉलिंग */
+    /* कमेंट्स के लिए वर्टिकल स्क्रॉलिंग */
     .comments-list-box {
       max-height: 60px; 
       overflow-y: auto;
@@ -568,13 +568,12 @@
       }
     }
 
-    // --- MEDIA MANAGEMENT SYSTEM FUNCTIONS (WITH SCROLL & SHARE) ---
+    // --- MEDIA MANAGEMENT SYSTEM FUNCTIONS ---
     function toggleUploadPanel() {
       const panel = document.getElementById("uploadPanel");
       panel.style.display = panel.style.display === "block" ? "none" : "block";
     }
 
-     Tiriggered category filter
     function switchCategory(category, element) {
       currentCategory = category;
       document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
@@ -582,7 +581,6 @@
       renderGallery();
     }
 
-    // अपडेटेड गैलरी रेंडर फ़ंक्शन (शेयर बटन और स्क्रॉल बॉक्स के साथ)
     function renderGallery(filterText = "") {
       if (!db) return;
       const gallery = document.getElementById("gallery");
@@ -725,7 +723,7 @@
       document.body.removeChild(a);
     }
 
-    // नया वेब शेयर एपीआई सिस्टम फंक्शन
+    // वेब शेयर फंक्शन
     function shareMedia(id, filename) {
       const store = db.transaction(["media"], "readonly").objectStore("media");
       store.get(id).onsuccess = function(e) {
