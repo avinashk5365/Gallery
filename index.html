@@ -121,7 +121,6 @@
 
     .search-box i { color: #a0a0a0; margin-right: 10px; }
 
-    /* स्क्रॉलिंग सपोर्ट के लिए अपडेटेड कैटेगरीज सीएसएस */
     .categories {
       display: flex;
       gap: 10px;
@@ -129,11 +128,6 @@
       padding: 10px 15px;
       max-width: 800px;
       margin: 0 auto;
-      scroll-behavior: smooth;
-      -webkit-overflow-scrolling: touch;
-    }
-    .categories::-webkit-scrollbar {
-      display: none;
     }
 
     .cat-btn {
@@ -224,21 +218,6 @@
     .action-icon-btn.liked i { color: var(--accent-color); }
 
     .comments-summary { padding: 0 15px 15px 15px; font-size: 12px; }
-    
-    /* कमेंट्स स्क्रॉलिंग के लिए नया बॉक्स सीएसएस */
-    .comments-scroll-box {
-      max-height: 50px; 
-      overflow-y: auto;
-      scroll-behavior: smooth;
-    }
-    .comments-scroll-box::-webkit-scrollbar {
-      width: 3px;
-    }
-    .comments-scroll-box::-webkit-scrollbar-thumb {
-      background: var(--glass-border);
-      border-radius: 10px;
-    }
-
     .comment-input-box { display: flex; gap: 5px; margin-top: 8px; }
     .comment-input-box input {
       flex: 1; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border);
@@ -361,7 +340,7 @@
   </div>
 
   <script>
-    // --- FIREBASE INITIALIZATION SYSTEM ---
+    // --- FIREBASE INITIALIZATION SYSTEM (UPDATED WITH YOUR CREDENTIALS) ---
     const firebaseConfig = {
       apiKey: "AIzaSyDKz1U6zxggWBnbYZSl9RgIUca8rihcGzM",
       authDomain: "my-public-gallery-42e95.firebaseapp.com",
@@ -369,6 +348,7 @@
       storageBucket: "my-public-gallery-42e95.firebasestorage.app",
       messagingSenderId: "727898221593",
       appId: "1:727898221593:web:65f30cc2e2a303b03e0e88",
+      // नोट: रियलटाइम डेटाबेस के लिए प्रोजेक्ट आईडी के आधार पर डिफ़ॉल्ट URL सेट किया गया है।
       databaseURL: "https://my-public-gallery-42e95-default-rtdb.firebaseio.com/" 
     };
 
@@ -386,9 +366,9 @@
     let validatedPassword = null;
     
     let forgotGeneratedOtp = null;
-    let forgotStage = 1;
+    let forgotStage = 1; // 1: identity check, 2: otp and new password verification
 
-    // 1. Initialize IndexedDB
+    // 1. Initialize IndexedDB (For Gallery Media Data)
     const request = indexedDB.open("PremiumGalleryDB", 1);
     
     request.onupgradeneeded = function(e) {
@@ -426,7 +406,6 @@
     function resetAuthScreen() {
       document.getElementById("credentialBlock").style.display = "block";
       document.getElementById("otpSection").style.display = "none";
-      document.getElementById("forgotSection").style.display = "block"; // Reset target handler fallback
       document.getElementById("forgotSection").style.display = "none";
       document.getElementById("forgotOtpVerification").style.display = "none";
       document.getElementById("authOtpInput").value = "";
@@ -445,6 +424,7 @@
       document.getElementById("forgotSection").style.display = "block";
     }
 
+    // [Firebase Integration] Step 1: Validate Inputs & Query Online Cloud DB
     function validateAndRequestOTP() {
       const identity = document.getElementById("authIdentity").value.trim();
       const password = document.getElementById("authPassword").value.trim();
@@ -460,8 +440,10 @@
         return alert("❌ अमान्य एंट्री! कृपया सही Gmail ID (@gmail.com) या 10 अंकों का मोबाइल नंबर डालें।");
       }
 
+      // Firebase पाथ को सेफ बनाने के लिए रिप्लेस रूल
       const safeKey = identity.replace(/[.#$[\]]/g, "_");
 
+      // ऑनलाइन डेटाबेस में यूजर चेक करना
       rtdb.ref('users/' + safeKey).once('value').then((snapshot) => {
         const userData = snapshot.val();
 
@@ -478,6 +460,7 @@
           }
         }
 
+        // OTP सुरक्षा कोड जनरेट करना
         generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
         validatedIdentity = identity;
         validatedPassword = password;
@@ -490,6 +473,7 @@
       });
     }
 
+    // [Firebase Integration] Step 2: Verify OTP & Write Cloud Registry
     function verifyOtpAndLogin() {
       const typedOtp = document.getElementById("authOtpInput").value.trim();
       if(!typedOtp) return alert("कृपया प्राप्त हुआ ओटीपी दर्ज करें!");
@@ -501,6 +485,7 @@
       const safeKey = validatedIdentity.replace(/[.#$[\]]/g, "_");
 
       if(!isLoginMode) {
+        // क्लाउड रियल-टाइम डेटाबेस में सुरक्षित सेव करना
         rtdb.ref('users/' + safeKey).set({
           identity: validatedIdentity,
           password: validatedPassword
@@ -523,6 +508,7 @@
       checkUserSessionGate();
     }
 
+    // [Firebase Integration] Forgot Password Cloud Overwrite Logics
     function processForgotPasswordVerify() {
       const targetId = document.getElementById("forgotIdentity").value.trim();
       if(!targetId) return alert("कृपया अपना रजिस्टर्ड ईमेल या मोबाइल नंबर डालें!");
@@ -551,6 +537,7 @@
           return alert("❌ गलत रीसेट ओटीपी!");
         }
 
+        // ऑनलाइन पासवर्ड अपडेट कमांड
         rtdb.ref('users/' + safeKey).update({
           password: newPass
         }).then(() => {
@@ -570,7 +557,7 @@
     }
 
 
-    // --- MEDIA MANAGEMENT SYSTEM FUNCTIONS ---
+    // --- MEDIA MANAGEMENT SYSTEM FUNCTIONS (RESTORED ORIGINAL INDEXEDDB) ---
     function toggleUploadPanel() {
       const panel = document.getElementById("uploadPanel");
       panel.style.display = panel.style.display === "block" ? "none" : "block";
@@ -583,7 +570,6 @@
       renderGallery();
     }
 
-    // शेयर बटन और स्क्रॉल बॉक्स के साथ रेंडर गैलरी फ़ंक्शन
     function renderGallery(filterText = "") {
       if (!db) return;
       const gallery = document.getElementById("gallery");
@@ -611,7 +597,6 @@
 
           let commentsHtml = (item.comments || []).map(c => `<div><b>User:</b> ${c}</div>`).join("");
 
-          // सोशल एक्शन्स रो में नेटिव शेयर बटन (fa-share-nodes) जोड़ा गया है
           card.innerHTML = `
             <div class="media-container">${mediaTag}</div>
             <div class="card-info">
@@ -626,9 +611,6 @@
                 <button class="action-icon-btn" onclick="document.getElementById('comment-in-${item.id}').focus()">
                   <i class="fa-regular fa-comment"></i> <span>${item.comments ? item.comments.length : 0}</span>
                 </button>
-                <button class="action-icon-btn" style="color:#2ecc71" onclick="shareMedia(${item.id}, '${item.name}')" title="Share Content">
-                  <i class="fa-solid fa-share-nodes"></i>
-                </button>
               </div>
               <div class="social-actions">
                 <button class="action-icon-btn" style="color:#74b9ff" onclick="downloadMedia('${item.url}', '${item.name}')"><i class="fa-solid fa-download"></i></button>
@@ -636,7 +618,7 @@
               </div>
             </div>
             <div class="comments-summary">
-              <div class="comments-scroll-box">${commentsHtml}</div>
+              <div style="max-height: 50px; overflow-y:auto;">${commentsHtml}</div>
               <div class="comment-input-box">
                 <input type="text" id="comment-in-${item.id}" placeholder="Add comment..." onkeydown="if(event.key === 'Enter') addComment(${item.id})">
               </div>
@@ -725,36 +707,6 @@
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-    }
-
-    // नया वेब शेयर एपीआई फंक्शनलिटी लॉजिक
-    function shareMedia(id, filename) {
-      const store = db.transaction(["media"], "readonly").objectStore("media");
-      store.get(id).onsuccess = function(e) {
-        const item = e.target.result;
-        
-        if (navigator.share) {
-          fetch(item.url)
-            .then(res => res.blob())
-            .then(blob => {
-              const file = new File([blob], filename, { type: item.type });
-              navigator.share({
-                title: filename,
-                text: `Check out this media from Premium Hub! Album: ${item.album}`,
-                files: [file]
-              }).catch(() => {
-                navigator.share({
-                  title: filename,
-                  text: `Premium Gallery Item: ${filename} (Album: ${item.album})`,
-                  url: window.location.href
-                });
-              });
-            });
-        } else {
-          navigator.clipboard.writeText(window.location.href);
-          alert("📋 ऐप लिंक क्लिपबोर्ड पर कॉपी हो गया है! आप इसे कहीं भी शेयर कर सकते हैं।");
-        }
-      };
     }
 
     function openLightboxFromDb(id) {
