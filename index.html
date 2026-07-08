@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Premium Auto-Compress Cloud Gallery</title>
+  <title>Premium Social Photo & Video Gallery</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -29,25 +29,41 @@
       padding-bottom: 90px;
     }
 
-    #mainAppContent { display: none; }
+    /* INITIAL LOCK STATE */
+    #mainAppContent {
+      display: none;
+    }
 
     header {
-      background: rgba(15, 12, 32, 0.5); backdrop-filter: var(--glass-blur);
-      border-bottom: 1px solid var(--glass-border); padding: 20px;
-      position: sticky; top: 0; z-index: 100; display: flex;
-      justify-content: space-between; align-items: center;
+      background: rgba(15, 12, 32, 0.5);
+      backdrop-filter: var(--glass-blur);
+      border-bottom: 1px solid var(--glass-border);
+      padding: 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     header h1 {
-      font-size: 24px; font-weight: 600;
+      font-size: 24px;
+      font-weight: 600;
       background: linear-gradient(45deg, #ff7675, #74b9ff);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
     .logout-btn {
-      background: var(--glass-bg); border: 1px solid var(--glass-border);
-      color: white; padding: 8px 15px; border-radius: 15px;
-      cursor: pointer; font-size: 13px; transition: 0.3s;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      color: white;
+      padding: 8px 15px;
+      border-radius: 15px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: 0.3s;
     }
     .logout-btn:hover { background: #ff4757; border-color: #ff4757; }
 
@@ -63,19 +79,11 @@
     }
     .auth-card h2 { margin-bottom: 8px; font-size: 24px; color: #74b9ff; }
     .auth-card p.subtitle { font-size: 13px; color: #aaa; margin-bottom: 20px; }
-    
-    .password-wrapper { position: relative; width: 100%; }
     .auth-card input {
       width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.3);
       border: 1px solid var(--glass-border); color: white; border-radius: 10px; outline: none; font-size: 14px;
     }
-    .auth-card .password-wrapper input { padding-right: 45px; }
     .auth-card input:focus { border-color: var(--primary-blue); }
-    
-    .toggle-password-btn {
-      position: absolute; right: 15px; top: 14px; color: #aaa; cursor: pointer; font-size: 16px; transition: 0.2s;
-    }
-    .toggle-password-btn:hover { color: #fff; }
     
     .auth-submit-btn {
       width: 100%; padding: 12px; background: var(--primary-blue); color: white;
@@ -83,41 +91,130 @@
     }
     .auth-submit-btn:hover { opacity: 0.9; }
 
-    #forgotSection { display: none; border-top: 1px dashed var(--glass-border); padding-top: 15px; margin-top: 10px; }
-    
-    .top-controls { max-width: 600px; margin: 20px auto; padding: 0 15px; }
-    .search-box {
-      display: flex; background: var(--glass-bg); border: 1px solid var(--glass-border);
-      border-radius: 30px; padding: 5px 15px; align-items: center;
+    #otpSection, #forgotSection { display: none; border-top: 1px dashed var(--glass-border); padding-top: 15px; margin-top: 10px; }
+    .otp-alert-box { background: rgba(74, 144, 226, 0.15); border: 1px solid var(--primary-blue); color: #fff; padding: 10px; border-radius: 8px; font-size: 12px; margin-bottom: 15px; }
+
+    .top-controls {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 0 15px;
     }
-    .search-box input { background: transparent; border: none; outline: none; color: white; width: 100%; padding: 10px 0; font-size: 15px; }
+
+    .search-box {
+      display: flex;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 30px;
+      padding: 5px 15px;
+      align-items: center;
+    }
+
+    .search-box input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: white;
+      width: 100%;
+      padding: 10px 0;
+      font-size: 15px;
+    }
+
     .search-box i { color: #a0a0a0; margin-right: 10px; }
 
-    .categories { display: flex; gap: 10px; overflow-x: auto; padding: 10px 15px; max-width: 800px; margin: 0 auto; }
-    .cat-btn {
-      background: var(--glass-bg); border: 1px solid var(--glass-border); color: #ccc;
-      padding: 10px 20px; border-radius: 20px; cursor: pointer; white-space: nowrap; transition: 0.3s;
+    .categories {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 10px 15px;
+      max-width: 800px;
+      margin: 0 auto;
     }
-    .cat-btn.active, .cat-btn:hover { background: var(--primary-blue); color: white; border-color: var(--primary-blue); }
 
-    #gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; padding: 20px; max-width: 1200px; margin: 0 auto; }
-    
-    .loading-container { text-align: center; grid-column: 1 / -1; padding: 40px; color: #74b9ff; font-size: 16px; }
+    .cat-btn {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      color: #ccc;
+      padding: 10px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: 0.3s;
+    }
+
+    .cat-btn.active, .cat-btn:hover {
+      background: var(--primary-blue);
+      color: white;
+      border-color: var(--primary-blue);
+    }
+
+    #gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 25px;
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
 
     .photo-card {
-      background: var(--glass-bg); backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-border);
-      border-radius: 20px; overflow: hidden; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
-    .media-container { position: relative; width: 100%; height: 230px; overflow: hidden; background: #000; }
-    .media-container img { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
+
+    .media-container {
+      position: relative;
+      width: 100%;
+      height: 230px;
+      overflow: hidden;
+      background: #000;
+    }
+
+    .media-container img, .media-container video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      cursor: pointer;
+    }
+
+    .video-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(0,0,0,0.7);
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
 
     .card-info { padding: 15px; }
     .card-info h3 { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .card-info .album-tag { font-size: 12px; color: #a0a0a0; }
 
-    .social-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+    .social-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 15px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
     .social-actions { display: flex; gap: 15px; }
-    .action-icon-btn { background: none; border: none; color: #b0b0b0; cursor: pointer; font-size: 16px; display: flex; align-items: center; gap: 5px; }
+
+    .action-icon-btn {
+      background: none;
+      border: none;
+      color: #b0b0b0;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
     .action-icon-btn.liked i { color: var(--accent-color); }
 
     .comments-summary { padding: 0 15px 15px 15px; font-size: 12px; }
@@ -128,9 +225,16 @@
     }
 
     .fab-container { position: fixed; bottom: 25px; right: 25px; z-index: 200; display: flex; flex-direction: column; align-items: flex-end; gap: 15px; }
-    .upload-options-panel { background: rgba(20, 15, 38, 0.95); border: 1px solid var(--glass-border); padding: 15px; border-radius: 20px; display: none; }
-    .upload-options-panel select, .upload-options-panel input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: white; padding: 8px; margin-bottom: 10px; border-radius: 8px; }
-    
+    .upload-options-panel {
+      background: rgba(20, 15, 38, 0.95); border: 1px solid var(--glass-border);
+      padding: 15px; border-radius: 20px; display: none;
+    }
+
+    .upload-options-panel select, .upload-options-panel input {
+      width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);
+      color: white; padding: 8px; margin-bottom: 10px; border-radius: 8px;
+    }
+
     .fab {
       width: 60px; height: 60px; background: linear-gradient(135deg, #6c5ce7, #a29bfe);
       border-radius: 50%; display: flex; justify-content: center; align-items: center;
@@ -142,12 +246,10 @@
       width: 100%; height: 100%; background: rgba(5, 3, 10, 0.98);
       justify-content: center; align-items: center;
     }
+
     .lightbox-content-wrapper { position: relative; max-width: 90%; max-height: 80%; }
-    #lightbox img { max-width: 100%; max-height: 85vh; border-radius: 12px; }
+    #lightbox img, #lightbox video { max-width: 100%; max-height: 85vh; border-radius: 12px; }
     .close-lightbox { position: absolute; top: -50px; right: 10px; font-size: 30px; color: white; background: none; border: none; cursor: pointer; }
-    
-    /* अपलोड प्रोग्रेस बार */
-    #uploadProgressStatus { font-size:11px; color:#2ecc71; margin-top:5px; display:none; text-align:center; }
   </style>
 </head>
 
@@ -161,29 +263,37 @@
       
       <div id="credentialBlock">
         <input type="text" id="authIdentity" placeholder="Gmail ID or 10-digit Mobile No.">
-        <div class="password-wrapper">
-          <input type="password" id="authPassword" placeholder="Enter Secure Password">
-          <i class="fa-solid fa-eye toggle-password-btn" id="toggleAuthPassword" onclick="togglePasswordVisibility('authPassword', 'toggleAuthPassword')"></i>
-        </div>
-        <button class="auth-submit-btn" id="authMainActionBtn" onclick="processSecureAuth()">Secure Log In</button>
+        <input type="password" id="authPassword" placeholder="Enter Secure Password">
+        <button class="auth-submit-btn" onclick="validateAndRequestOTP()">Verify Credentials</button>
+        
         <div style="margin-top: 15px; font-size: 13px; display: flex; justify-content: space-between;">
           <span style="color: #74b9ff; cursor: pointer;" onclick="toggleAuthMode()" id="switchAuthBtn">Don't have account? Register</span>
           <span style="color: #ff7675; cursor: pointer;" onclick="openForgotBlock()">Forgot Password?</span>
         </div>
       </div>
 
+      <div id="otpSection">
+        <div class="otp-alert-box" id="otpDisplayAlert"></div>
+        <input type="text" id="authOtpInput" placeholder="Enter 4-Digit Security OTP" maxlength="4">
+        <button class="auth-submit-btn" style="background: #2ecc71;" onclick="verifyOtpAndLogin()">Verify OTP & Unlock Hub</button>
+        <button class="auth-submit-btn" style="background: transparent; border: 1px solid var(--glass-border); margin-top: 8px; font-size: 12px;" onclick="resetAuthScreen()">Back</button>
+      </div>
+
       <div id="forgotSection">
-        <p style="font-size:12px; margin-bottom:10px; color:#aaa;">Reset your secure account password directly.</p>
-        <input type="text" id="forgotIdentity" placeholder="Confirm registered Gmail/Mobile No.">
-        <div class="password-wrapper">
+        <p style="font-size:12px; margin-bottom:10px; color:#aaa;">Verify your ID first to reset your password.</p>
+        <input type="text" id="forgotIdentity" placeholder="Confirm your registered Gmail/Mobile No.">
+        <div id="forgotOtpVerification" style="display:none;">
+          <div class="otp-alert-box" id="forgotOtpDisplay"></div>
+          <input type="text" id="forgotOtpInput" placeholder="Enter Reset OTP Code" maxlength="4">
           <input type="password" id="forgotNewPassword" placeholder="Enter New Secure Password">
-          <i class="fa-solid fa-eye toggle-password-btn" id="toggleForgotPass" onclick="togglePasswordVisibility('forgotNewPassword', 'toggleForgotPass')"></i>
         </div>
-        <button class="auth-submit-btn" style="background:#e67e22;" onclick="processForgotPasswordVerify()">Update Password</button>
+        <button class="auth-submit-btn" id="forgotActionBtn" onclick="processForgotPasswordVerify()">Verify Identity</button>
         <button class="auth-submit-btn" style="background: transparent; border: 1px solid var(--glass-border); margin-top: 8px; font-size: 12px;" onclick="resetAuthScreen()">Cancel</button>
       </div>
+
     </div>
   </div>
+
 
   <div id="mainAppContent">
     <header>
@@ -194,7 +304,7 @@
     <div class="top-controls">
       <div class="search-box">
         <i class="fa-solid fa-magnifying-glass"></i>
-        <input type="text" id="searchBar" placeholder="Search photos..." oninput="filterGallery()">
+        <input type="text" id="searchBar" placeholder="Search photos or videos..." oninput="filterGallery()">
       </div>
     </div>
 
@@ -212,12 +322,11 @@
       <div class="upload-options-panel" id="uploadPanel">
         <select id="albumSelect">
           <option value="General">General</option>
-          <option value="Friends">Friend's</option>
+          <option value="Friend's">Friend's</option>
           <option value="Travel">Travel</option>
           <option value="Work">Work</option>
         </select>
-        <input type="file" id="mediaUpload" accept="image/*" multiple>
-        <div id="uploadProgressStatus">⚡ कंप्रेस और अपलोड हो रहा है...</div>
+        <input type="file" id="mediaUpload" accept="image/*,video/*" multiple>
       </div>
       <div class="fab" onclick="toggleUploadPanel()"><i class="fa-solid fa-plus"></i></div>
     </div>
@@ -231,45 +340,56 @@
   </div>
 
   <script>
-    // --- FIREBASE CONFIGURATION ---
+    // --- FIREBASE INITIALIZATION SYSTEM (UPDATED WITH YOUR CREDENTIALS) ---
     const firebaseConfig = {
       apiKey: "AIzaSyDKz1U6zxggWBnbYZSl9RgIUca8rihcGzM",
       authDomain: "my-public-gallery-42e95.firebaseapp.com",
       projectId: "my-public-gallery-42e95",
+      storageBucket: "my-public-gallery-42e95.firebasestorage.app",
       messagingSenderId: "727898221593",
       appId: "1:727898221593:web:65f30cc2e2a303b03e0e88",
+      // नोट: रियलटाइम डेटाबेस के लिए प्रोजेक्ट आईडी के आधार पर डिफ़ॉल्ट URL सेट किया गया है।
       databaseURL: "https://my-public-gallery-42e95-default-rtdb.firebaseio.com/" 
     };
 
+    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const rtdb = firebase.database();
 
+    let db;
     let currentCategory = "all";
-    let isLoginMode = true;
-    let cloudItemsCache = [];
 
-    window.onload = function() {
+    // AUTH / SECURITY DATA MODULE STATE 
+    let isLoginMode = true;
+    let generatedOtp = null;
+    let validatedIdentity = null;
+    let validatedPassword = null;
+    
+    let forgotGeneratedOtp = null;
+    let forgotStage = 1; // 1: identity check, 2: otp and new password verification
+
+    // 1. Initialize IndexedDB (For Gallery Media Data)
+    const request = indexedDB.open("PremiumGalleryDB", 1);
+    
+    request.onupgradeneeded = function(e) {
+      db = e.target.result;
+      if (!db.objectStoreNames.contains("media")) {
+        db.createObjectStore("media", { keyPath: "id", autoIncrement: true });
+      }
+    };
+
+    request.onsuccess = function(e) {
+      db = e.target.result;
       checkUserSessionGate();
     };
 
-    function togglePasswordVisibility(inputId, iconId) {
-      const passwordInput = document.getElementById(inputId);
-      const icon = document.getElementById(iconId);
-      if (passwordInput.type === "password") {
-        passwordInput.type = "text";
-        icon.classList.replace("fa-eye", "fa-eye-slash");
-      } else {
-        passwordInput.type = "password";
-        icon.classList.replace("fa-eye-slash", "fa-eye");
-      }
-    }
-
+    // --- SECURITY & ONLINE CLOUD ACCOUNT LOGIC SYSTEM ---
     function checkUserSessionGate() {
       const activeSession = sessionStorage.getItem("app_authenticated");
       if(activeSession) {
         document.getElementById("authGateway").style.display = "none";
         document.getElementById("mainAppContent").style.display = "block";
-        listenToFreeCloudGallery();
+        renderGallery();
       } else {
         document.getElementById("authGateway").style.display = "flex";
         document.getElementById("mainAppContent").style.display = "none";
@@ -280,73 +400,164 @@
       isLoginMode = !isLoginMode;
       document.getElementById("authFormTitle").innerText = isLoginMode ? "Account Login" : "Register Account";
       document.getElementById("authFormSubtitle").innerText = isLoginMode ? "Enter Gmail ID or 10-digit Mobile No." : "Create Identity using Gmail or Number";
-      document.getElementById("authMainActionBtn").innerText = isLoginMode ? "Secure Log In" : "Register Now";
       document.getElementById("switchAuthBtn").innerText = isLoginMode ? "Don't have account? Register" : "Already registered? Login";
     }
 
     function resetAuthScreen() {
       document.getElementById("credentialBlock").style.display = "block";
+      document.getElementById("otpSection").style.display = "none";
       document.getElementById("forgotSection").style.display = "none";
-      document.getElementById("authIdentity").value = "";
-      document.getElementById("authPassword").value = "";
+      document.getElementById("forgotOtpVerification").style.display = "none";
+      document.getElementById("authOtpInput").value = "";
+      document.getElementById("forgotOtpInput").value = "";
       document.getElementById("forgotNewPassword").value = "";
       document.getElementById("forgotIdentity").value = "";
+      forgotStage = 1;
+      document.getElementById("forgotActionBtn").innerText = "Verify Identity";
+      generatedOtp = null;
+      forgotGeneratedOtp = null;
     }
 
     function openForgotBlock() {
       document.getElementById("credentialBlock").style.display = "none";
+      document.getElementById("otpSection").style.display = "none";
       document.getElementById("forgotSection").style.display = "block";
     }
 
-    function processSecureAuth() {
+    // [Firebase Integration] Step 1: Validate Inputs & Query Online Cloud DB
+    function validateAndRequestOTP() {
       const identity = document.getElementById("authIdentity").value.trim();
       const password = document.getElementById("authPassword").value.trim();
 
-      if(!identity || !password) return alert("कृपया पूरा भरें!");
+      if(!identity || !password) {
+        return alert("कृपया सभी इनपुट फील्ड्स को पूरा भरें!");
+      }
+
+      const gmailCheck = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+      const mobileCheck = /^[0-9]{10}$/;
+
+      if(!gmailCheck.test(identity) && !mobileCheck.test(identity)) {
+        return alert("❌ अमान्य एंट्री! कृपया सही Gmail ID (@gmail.com) या 10 अंकों का मोबाइल नंबर डालें।");
+      }
+
+      // Firebase पाथ को सेफ बनाने के लिए रिप्लेस रूल
       const safeKey = identity.replace(/[.#$[\]]/g, "_");
 
+      // ऑनलाइन डेटाबेस में यूजर चेक करना
       rtdb.ref('users/' + safeKey).once('value').then((snapshot) => {
         const userData = snapshot.val();
+
         if(isLoginMode) {
-          if(!userData) return alert("❌ आईडी रजिस्टर्ड नहीं है!");
-          if(userData.password !== password) return alert("❌ गलत पासवर्ड!");
-          sessionStorage.setItem("app_authenticated", "true");
-          sessionStorage.setItem("current_user", identity);
-          resetAuthScreen();
-          checkUserSessionGate();
+          if(!userData) {
+            return alert("❌ यह यूजर आईडी रजिस्टर्ड नहीं है! कृपया पहले 'Register' करें।");
+          }
+          if(userData.password !== password) {
+            return alert("❌ गलत पासवर्ड! अगर आप पासवर्ड भूल गए हैं, तो 'Forgot Password?' का उपयोग करें।");
+          }
         } else {
-          if(userData) return alert("❌ आईडी पहले से मौजूद है!");
-          rtdb.ref('users/' + safeKey).set({ identity: identity, password: password }).then(() => {
-            alert("🎉 रजिस्ट्रेशन सफल!");
-            isLoginMode = true; toggleAuthMode(); resetAuthScreen();
-          });
+          if(userData) {
+            return alert("यह आईडी पहले से रजिस्टर्ड है! कृपया सीधे लॉगिन करें।");
+          }
         }
+
+        // OTP सुरक्षा कोड जनरेट करना
+        generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
+        validatedIdentity = identity;
+        validatedPassword = password;
+
+        document.getElementById("credentialBlock").style.display = "none";
+        document.getElementById("otpSection").style.display = "block";
+        document.getElementById("otpDisplayAlert").innerHTML = `📨 <b>लॉगिन सुरक्षा ओटीपी:</b> <span style="font-size:18px; font-weight:700; color:#fff; background:#ff4757; padding:2px 8px; border-radius:5px; margin-left:5px; letter-spacing:2px;">${generatedOtp}</span>`;
+      }).catch((err) => {
+        alert("डेटाबेस से कनेक्ट करने में त्रुटि: " + err.message);
       });
     }
 
+    // [Firebase Integration] Step 2: Verify OTP & Write Cloud Registry
+    function verifyOtpAndLogin() {
+      const typedOtp = document.getElementById("authOtpInput").value.trim();
+      if(!typedOtp) return alert("कृपया प्राप्त हुआ ओटीपी दर्ज करें!");
+
+      if(typedOtp !== generatedOtp) {
+        return alert("❌ अमान्य ओटीपी कोड! कृपया सही ओटीपी प्रविष्ट करें।");
+      }
+
+      const safeKey = validatedIdentity.replace(/[.#$[\]]/g, "_");
+
+      if(!isLoginMode) {
+        // क्लाउड रियल-टाइम डेटाबेस में सुरक्षित सेव करना
+        rtdb.ref('users/' + safeKey).set({
+          identity: validatedIdentity,
+          password: validatedPassword
+        }).then(() => {
+          alert("✅ रजिस्ट्रेशन सफल! अब आप लॉगिन कर सकते हैं।");
+          isLoginMode = true;
+          toggleAuthMode();
+          resetAuthScreen();
+        }).catch((err) => {
+          alert("रजिस्ट्रेशन सुरक्षित करने में विफलता: " + err.message);
+        });
+        return;
+      }
+
+      sessionStorage.setItem("app_authenticated", "true");
+      sessionStorage.setItem("current_user", validatedIdentity);
+      
+      alert(`✅ ओटीपी प्रमाणित! स्वागत है: ${validatedIdentity}`);
+      resetAuthScreen();
+      checkUserSessionGate();
+    }
+
+    // [Firebase Integration] Forgot Password Cloud Overwrite Logics
     function processForgotPasswordVerify() {
       const targetId = document.getElementById("forgotIdentity").value.trim();
-      const newPass = document.getElementById("forgotNewPassword").value.trim();
-      if(!targetId || !newPass) return alert("सब भरें!");
+      if(!targetId) return alert("कृपया अपना रजिस्टर्ड ईमेल या मोबाइल नंबर डालें!");
       const safeKey = targetId.replace(/[.#$[\]]/g, "_");
 
-      rtdb.ref('users/' + safeKey).once('value').then((snapshot) => {
-        if(!snapshot.exists()) return alert("❌ रिकॉर्ड नहीं मिला।");
-        rtdb.ref('users/' + safeKey).update({ password: newPass }).then(() => {
-          alert("🎉 पासवर्ड बदला गया!");
-          resetAuthScreen();
+      if(forgotStage === 1) {
+        rtdb.ref('users/' + safeKey).once('value').then((snapshot) => {
+          if(!snapshot.exists()) {
+            return alert("❌ इस नाम का कोई रिकॉर्ड डेटाबेस में मौजूद नहीं है।");
+          }
+
+          forgotGeneratedOtp = Math.floor(1000 + Math.random() * 9000).toString();
+          document.getElementById("forgotOtpVerification").style.display = "block";
+          document.getElementById("forgotOtpDisplay").innerHTML = `🗝️ <b>पासवर्ड रीसेट ओटीपी:</b> <span style="font-size:16px; background:#e67e22; padding:2px 6px; border-radius:4px;">${forgotGeneratedOtp}</span>`;
+          document.getElementById("forgotActionBtn").innerText = "Reset Password Now";
+          forgotStage = 2;
         });
-      });
+      } 
+      else if(forgotStage === 2) {
+        const userOtp = document.getElementById("forgotOtpInput").value.trim();
+        const newPass = document.getElementById("forgotNewPassword").value.trim();
+
+        if(!userOtp || !newPass) return alert("कृपया ओटीपी और नया पासवर्ड दोनों दर्ज करें!");
+
+        if(userOtp !== forgotGeneratedOtp) {
+          return alert("❌ गलत रीसेट ओटीपी!");
+        }
+
+        // ऑनलाइन पासवर्ड अपडेट कमांड
+        rtdb.ref('users/' + safeKey).update({
+          password: newPass
+        }).then(() => {
+          alert("🎉 पासवर्ड सफलतापूर्वक बदल दिया गया है! अब नए पासवर्ड से लॉगिन करें।");
+          resetAuthScreen();
+        }).catch((err) => {
+          alert("पासवर्ड रीसेट करने में समस्या आई: " + err.message);
+        });
+      }
     }
 
     function logoutSession() {
-      if(confirm("लॉग आउट करना चाहते हैं?")) {
+      if(confirm("क्या आप इस सत्र से लॉग आउट करना चाहते हैं?")) {
         sessionStorage.clear();
         checkUserSessionGate();
       }
     }
 
-    // --- SYNC ENGINE ---
+
+    // --- MEDIA MANAGEMENT SYSTEM FUNCTIONS (RESTORED ORIGINAL INDEXEDDB) ---
     function toggleUploadPanel() {
       const panel = document.getElementById("uploadPanel");
       panel.style.display = panel.style.display === "block" ? "none" : "block";
@@ -356,165 +567,162 @@
       currentCategory = category;
       document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
       element.classList.add('active');
-      renderGalleryUI();
+      renderGallery();
     }
 
-    function listenToFreeCloudGallery() {
-      const galleryDiv = document.getElementById("gallery");
-      galleryDiv.innerHTML = `<div class="loading-container"><i class="fa-solid fa-spinner fa-spin"></i> गैलरी लोड हो रही है...</div>`;
-
-      rtdb.ref('free_gallery_media').on('value', (snapshot) => {
-        cloudItemsCache = [];
-        snapshot.forEach((childSnapshot) => {
-          let item = childSnapshot.val();
-          item.id = childSnapshot.key;
-          cloudItemsCache.push(item);
-        });
-        cloudItemsCache.reverse();
-        renderGalleryUI();
-      });
-    }
-
-    function renderGalleryUI(filterText = "") {
+    function renderGallery(filterText = "") {
+      if (!db) return;
       const gallery = document.getElementById("gallery");
       gallery.innerHTML = "";
       const query = filterText.toLowerCase();
 
-      if (cloudItemsCache.length === 0) {
-        gallery.innerHTML = `<div class="loading-container">गैलरी खाली है! नीचे '+' बटन दबाकर पहली फ़ाइल अपलोड करें।</div>`;
-        return;
-      }
+      const transaction = db.transaction(["media"], "readonly");
+      const store = transaction.objectStore("media");
+      const getAllRequest = store.getAll();
 
-      cloudItemsCache.forEach((item) => {
-        if (currentCategory !== "all" && item.album !== currentCategory) return;
-        if (query && !item.name.toLowerCase().includes(query)) return;
+      getAllRequest.onsuccess = function() {
+        const items = getAllRequest.result;
+        
+        items.forEach((item) => {
+          if (currentCategory !== "all" && item.album !== currentCategory) return;
+          if (query && !item.name.toLowerCase().includes(query)) return;
 
-        const card = document.createElement("div");
-        card.className = "photo-card";
+          const card = document.createElement("div");
+          card.className = "photo-card";
+          const isVideo = item.type && item.type.startsWith("video");
 
-        card.innerHTML = `
-          <div class="media-container"><img src="${item.url}" alt="Media" onclick="openLightbox('${item.url}')"></div>
-          <div class="card-info">
-            <h3>${item.name}</h3>
-            <span class="album-tag"><i class="fa-regular fa-folder"></i> ${item.album}</span>
-          </div>
-          <div class="social-row">
-            <div class="social-actions">
-              <button class="action-icon-btn" onclick="toggleCloudLike('${item.id}', ${item.likes || 0})">
-                <i class="fa-solid fa-heart" style="color:var(--accent-color)"></i> <span>${item.likes || 0}</span>
-              </button>
-              <button class="action-icon-btn" onclick="document.getElementById('comment-in-${item.id}').focus()">
-                <i class="fa-regular fa-comment"></i> <span>${item.comments ? Object.keys(item.comments).length : 0}</span>
-              </button>
+          let mediaTag = isVideo 
+            ? `<video src="${item.url}" muted onclick="openLightboxFromDb(${item.id})"></video><span class="video-badge"><i class="fa-solid fa-video"></i></span>`
+            : `<img src="${item.url}" alt="Media" onclick="openLightboxFromDb(${item.id})">`;
+
+          let commentsHtml = (item.comments || []).map(c => `<div><b>User:</b> ${c}</div>`).join("");
+
+          card.innerHTML = `
+            <div class="media-container">${mediaTag}</div>
+            <div class="card-info">
+              <h3>${item.name}</h3>
+              <span class="album-tag"><i class="fa-regular fa-folder"></i> ${item.album}</span>
             </div>
-            <div class="social-actions">
-              <button class="action-icon-btn" style="color:#74b9ff" onclick="downloadMedia('${item.url}')"><i class="fa-solid fa-download"></i></button>
-              <button class="action-icon-btn" style="color:#ff7675" onclick="deleteCloudMedia('${item.id}')"><i class="fa-regular fa-trash-can"></i></button>
+            <div class="social-row">
+              <div class="social-actions">
+                <button class="action-icon-btn ${item.liked ? 'liked' : ''}" onclick="toggleLike(${item.id})">
+                  <i class="fa-${item.liked ? 'solid' : 'regular'} fa-heart"></i> <span>${item.likes || 0}</span>
+                </button>
+                <button class="action-icon-btn" onclick="document.getElementById('comment-in-${item.id}').focus()">
+                  <i class="fa-regular fa-comment"></i> <span>${item.comments ? item.comments.length : 0}</span>
+                </button>
+              </div>
+              <div class="social-actions">
+                <button class="action-icon-btn" style="color:#74b9ff" onclick="downloadMedia('${item.url}', '${item.name}')"><i class="fa-solid fa-download"></i></button>
+                <button class="action-icon-btn" style="color:#ff7675" onclick="deleteMedia(${item.id})"><i class="fa-regular fa-trash-can"></i></button>
+              </div>
             </div>
-          </div>
-          <div class="comments-summary">
-            <div style="max-height: 50px; overflow-y:auto;">${item.comments ? Object.values(item.comments).map(c => `<div><b>${c.user}:</b> ${c.text}</div>`).join('') : ''}</div>
-            <div class="comment-input-box">
-              <input type="text" id="comment-in-${item.id}" placeholder="Add comment..." onkeydown="if(event.key === 'Enter') addCloudComment('${item.id}')">
+            <div class="comments-summary">
+              <div style="max-height: 50px; overflow-y:auto;">${commentsHtml}</div>
+              <div class="comment-input-box">
+                <input type="text" id="comment-in-${item.id}" placeholder="Add comment..." onkeydown="if(event.key === 'Enter') addComment(${item.id})">
+              </div>
             </div>
-          </div>
-        `;
-        gallery.appendChild(card);
-      });
+          `;
+          gallery.appendChild(card);
+        });
+      };
     }
 
     function filterGallery() {
-      renderGalleryUI(document.getElementById("searchBar").value);
+      renderGallery(document.getElementById("searchBar").value);
     }
 
-    // [ऑटो कंप्रेसर इंजन] HTML5 CANVAS आधारित लाइव कम्प्रेशन एल्गोरिथम
     document.getElementById("mediaUpload").addEventListener("change", function (event) {
       const files = event.target.files;
       const album = document.getElementById("albumSelect").value;
-      if (files.length === 0) return;
-
-      const progressStatus = document.getElementById("uploadProgressStatus");
-      progressStatus.style.display = "block";
 
       Array.from(files).forEach(file => {
         const reader = new FileReader();
         reader.onload = function (e) {
-          const img = new Image();
-          img.onload = function () {
-            // एक स्टैंडर्ड कैनवास चौड़ाई सेट करें (1024px सोशल मीडिया और मोबाइल के लिए बेस्ट है)
-            const canvas = document.createElement("canvas");
-            let width = img.width;
-            let height = img.height;
+          const transaction = db.transaction(["media"], "readwrite");
+          const store = transaction.objectStore("media");
+          
+          store.add({
+            name: file.name,
+            album: album,
+            url: e.target.result,
+            type: file.type,
+            likes: 0,
+            liked: false,
+            comments: []
+          });
 
-            const max_size = 1024; 
-            if (width > height) {
-              if (width > max_size) { height *= max_size / width; width = max_size; }
-            } else {
-              if (height > max_size) { width *= max_size / height; height = max_size; }
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-
-            const ctx = canvas.getContext("2d");
-            ctx.drawImage(img, 0, 0, width, height);
-
-            // क्वालिटी को 0.7 (70%) पर कंप्रेस करना - साइज बहुत छोटी हो जाएगी पर फोटो साफ दिखेगी
-            const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
-
-            // कंप्रेस होने के बाद फ्री डेटाबेस में सेंड करें
-            rtdb.ref('free_gallery_media').push({
-              name: file.name.split('.')[0] + "_compressed.jpg",
-              album: album,
-              url: compressedBase64,
-              likes: 0,
-              uploader: sessionStorage.getItem("current_user") || "Anonymous"
-            }).then(() => {
-              progressStatus.style.display = "none";
-              console.log("Compressed & Synced!");
-            }).catch(err => {
-              progressStatus.style.display = "none";
-              alert("एरर: " + err.message);
-            });
-          };
-          img.src = e.target.result;
+          transaction.oncomplete = function() { renderGallery(); };
         };
         reader.readAsDataURL(file);
       });
       toggleUploadPanel();
     });
 
-    function toggleCloudLike(id, currentLikes) {
-      rtdb.ref(`free_gallery_media/${id}`).update({ likes: currentLikes + 1 });
+    function updateItem(id, updateCallback) {
+      const transaction = db.transaction(["media"], "readwrite");
+      const store = transaction.objectStore("media");
+      const request = store.get(id);
+
+      request.onsuccess = function() {
+        const item = request.result;
+        updateCallback(item);
+        store.put(item);
+      };
+      transaction.oncomplete = function() { renderGallery(); };
     }
 
-    function addCloudComment(id) {
+    function toggleLike(id) {
+      updateItem(id, function(item) {
+        item.liked = !item.liked;
+        item.likes = (item.likes || 0) + (item.liked ? 1 : -1);
+      });
+    }
+
+    function addComment(id) {
       const input = document.getElementById(`comment-in-${id}`);
-      const text = input.value.trim();
-      const currentUser = sessionStorage.getItem("current_user") || "User";
-      if (text !== "") {
-        rtdb.ref(`free_gallery_media/${id}/comments`).push({
-          user: currentUser.split('@')[0],
-          text: text
-        }).then(() => { input.value = ""; });
+      if (input.value.trim() !== "") {
+        const text = input.value.trim();
+        updateItem(id, function(item) {
+          if (!item.comments) item.comments = [];
+          item.comments.push(text);
+        });
+        input.value = "";
       }
     }
 
-    function deleteCloudMedia(id) {
-      if(confirm("क्या आप इसे क्लाउड से हमेशा के लिए डिलीट करना चाहते हैं?")) {
-        rtdb.refFree = rtdb.ref(`free_gallery_media/${id}`).remove();
+    function deleteMedia(id) {
+      if(confirm("Delete this file permanently?")) {
+        const transaction = db.transaction(["media"], "readwrite");
+        db.transaction(["media"], "readwrite").objectStore("media").delete(id);
+        transaction.oncomplete = function() { renderGallery(); };
       }
     }
 
-    function downloadMedia(url) {
-      const newTab = window.open();
-      newTab.document.body.innerHTML = `<img src="${url}" style="max-width:100%;">`;
+    function downloadMedia(url, filename) {
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename || "download";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     }
 
-    function openLightbox(url) {
-      const viewerContainer = document.getElementById("lightboxMediaItem");
-      viewerContainer.innerHTML = `<img src="${url}" alt="View">`;
-      document.getElementById("lightbox").style.display = "flex";
+    function openLightboxFromDb(id) {
+      const store = db.transaction(["media"], "readonly").objectStore("media");
+      store.get(id).onsuccess = function(e) {
+        const item = e.target.result;
+        const viewerContainer = document.getElementById("lightboxMediaItem");
+        const isVideo = item.type && item.type.startsWith("video");
+
+        if (isVideo) {
+          viewerContainer.innerHTML = `<video src="${item.url}" controls autoplay style="max-width:100%; max-height:85vh;"></video>`;
+        } else {
+          viewerContainer.innerHTML = `<img src="${item.url}" alt="View">`;
+        }
+        document.getElementById("lightbox").style.display = "flex";
+      };
     }
 
     function closeLightbox() {
