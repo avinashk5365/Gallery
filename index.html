@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Premium Free Cloud Gallery</title>
+  <title>Premium Auto-Compress Cloud Gallery</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -83,9 +83,8 @@
     }
     .auth-submit-btn:hover { opacity: 0.9; }
 
-    #otpSection, #forgotSection { display: none; border-top: 1px dashed var(--glass-border); padding-top: 15px; margin-top: 10px; }
-    .otp-alert-box { background: rgba(74, 144, 226, 0.15); border: 1px solid var(--primary-blue); color: #fff; padding: 10px; border-radius: 8px; font-size: 12px; margin-bottom: 15px; }
-
+    #forgotSection { display: none; border-top: 1px dashed var(--glass-border); padding-top: 15px; margin-top: 10px; }
+    
     .top-controls { max-width: 600px; margin: 20px auto; padding: 0 15px; }
     .search-box {
       display: flex; background: var(--glass-bg); border: 1px solid var(--glass-border);
@@ -110,8 +109,7 @@
       border-radius: 20px; overflow: hidden; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
     .media-container { position: relative; width: 100%; height: 230px; overflow: hidden; background: #000; }
-    .media-container img, .media-container video { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
-    .video-badge { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.7); padding: 5px 8px; border-radius: 6px; font-size: 12px; }
+    .media-container img { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
 
     .card-info { padding: 15px; }
     .card-info h3 { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -145,8 +143,11 @@
       justify-content: center; align-items: center;
     }
     .lightbox-content-wrapper { position: relative; max-width: 90%; max-height: 80%; }
-    #lightbox img, #lightbox video { max-width: 100%; max-height: 85vh; border-radius: 12px; }
+    #lightbox img { max-width: 100%; max-height: 85vh; border-radius: 12px; }
     .close-lightbox { position: absolute; top: -50px; right: 10px; font-size: 30px; color: white; background: none; border: none; cursor: pointer; }
+    
+    /* अपलोड प्रोग्रेस बार */
+    #uploadProgressStatus { font-size:11px; color:#2ecc71; margin-top:5px; display:none; text-align:center; }
   </style>
 </head>
 
@@ -164,32 +165,21 @@
           <input type="password" id="authPassword" placeholder="Enter Secure Password">
           <i class="fa-solid fa-eye toggle-password-btn" id="toggleAuthPassword" onclick="togglePasswordVisibility('authPassword', 'toggleAuthPassword')"></i>
         </div>
-        <button class="auth-submit-btn" onclick="validateAndRequestOTP()">Verify Credentials</button>
+        <button class="auth-submit-btn" id="authMainActionBtn" onclick="processSecureAuth()">Secure Log In</button>
         <div style="margin-top: 15px; font-size: 13px; display: flex; justify-content: space-between;">
           <span style="color: #74b9ff; cursor: pointer;" onclick="toggleAuthMode()" id="switchAuthBtn">Don't have account? Register</span>
           <span style="color: #ff7675; cursor: pointer;" onclick="openForgotBlock()">Forgot Password?</span>
         </div>
       </div>
 
-      <div id="otpSection">
-        <div class="otp-alert-box" id="otpDisplayAlert"></div>
-        <input type="text" id="authOtpInput" placeholder="Enter 4-Digit Security OTP" maxlength="4">
-        <button class="auth-submit-btn" style="background: #2ecc71;" onclick="verifyOtpAndLogin()">Verify OTP & Unlock Hub</button>
-        <button class="auth-submit-btn" style="background: transparent; border: 1px solid var(--glass-border); margin-top: 8px; font-size: 12px;" onclick="resetAuthScreen()">Back</button>
-      </div>
-
       <div id="forgotSection">
-        <p style="font-size:12px; margin-bottom:10px; color:#aaa;">Verify your ID first to reset your password.</p>
-        <input type="text" id="forgotIdentity" placeholder="Confirm your registered Gmail/Mobile No.">
-        <div id="forgotOtpVerification" style="display:none;">
-          <div class="otp-alert-box" id="forgotOtpDisplay"></div>
-          <div class="password-wrapper">
-            <input type="password" id="forgotNewPassword" placeholder="Enter New Secure Password">
-            <i class="fa-solid fa-eye toggle-password-btn" id="toggleForgotPass" onclick="togglePasswordVisibility('forgotNewPassword', 'toggleForgotPass')"></i>
-          </div>
-          <input type="text" id="forgotOtpInput" placeholder="Enter Reset OTP Code" maxlength="4">
+        <p style="font-size:12px; margin-bottom:10px; color:#aaa;">Reset your secure account password directly.</p>
+        <input type="text" id="forgotIdentity" placeholder="Confirm registered Gmail/Mobile No.">
+        <div class="password-wrapper">
+          <input type="password" id="forgotNewPassword" placeholder="Enter New Secure Password">
+          <i class="fa-solid fa-eye toggle-password-btn" id="toggleForgotPass" onclick="togglePasswordVisibility('forgotNewPassword', 'toggleForgotPass')"></i>
         </div>
-        <button class="auth-submit-btn" id="forgotActionBtn" onclick="processForgotPasswordVerify()">Verify Identity</button>
+        <button class="auth-submit-btn" style="background:#e67e22;" onclick="processForgotPasswordVerify()">Update Password</button>
         <button class="auth-submit-btn" style="background: transparent; border: 1px solid var(--glass-border); margin-top: 8px; font-size: 12px;" onclick="resetAuthScreen()">Cancel</button>
       </div>
     </div>
@@ -204,7 +194,7 @@
     <div class="top-controls">
       <div class="search-box">
         <i class="fa-solid fa-magnifying-glass"></i>
-        <input type="text" id="searchBar" placeholder="Search photos or videos..." oninput="filterGallery()">
+        <input type="text" id="searchBar" placeholder="Search photos..." oninput="filterGallery()">
       </div>
     </div>
 
@@ -227,7 +217,7 @@
           <option value="Work">Work</option>
         </select>
         <input type="file" id="mediaUpload" accept="image/*" multiple>
-        <p style="font-size:10px; color:#aaa; margin-top:5px;">⚠️ नोट: बेहतर स्पीड के लिए कम साइज की इमेजेस अपलोड करें।</p>
+        <div id="uploadProgressStatus">⚡ कंप्रेस और अपलोड हो रहा है...</div>
       </div>
       <div class="fab" onclick="toggleUploadPanel()"><i class="fa-solid fa-plus"></i></div>
     </div>
@@ -241,7 +231,7 @@
   </div>
 
   <script>
-    // --- FIREBASE CREDENTIALS CONFIGURATION ---
+    // --- FIREBASE CONFIGURATION ---
     const firebaseConfig = {
       apiKey: "AIzaSyDKz1U6zxggWBnbYZSl9RgIUca8rihcGzM",
       authDomain: "my-public-gallery-42e95.firebaseapp.com",
@@ -256,11 +246,6 @@
 
     let currentCategory = "all";
     let isLoginMode = true;
-    let generatedOtp = null;
-    let validatedIdentity = null;
-    let validatedPassword = null;
-    let forgotGeneratedOtp = null;
-    let forgotStage = 1;
     let cloudItemsCache = [];
 
     window.onload = function() {
@@ -295,118 +280,73 @@
       isLoginMode = !isLoginMode;
       document.getElementById("authFormTitle").innerText = isLoginMode ? "Account Login" : "Register Account";
       document.getElementById("authFormSubtitle").innerText = isLoginMode ? "Enter Gmail ID or 10-digit Mobile No." : "Create Identity using Gmail or Number";
+      document.getElementById("authMainActionBtn").innerText = isLoginMode ? "Secure Log In" : "Register Now";
       document.getElementById("switchAuthBtn").innerText = isLoginMode ? "Don't have account? Register" : "Already registered? Login";
     }
 
     function resetAuthScreen() {
       document.getElementById("credentialBlock").style.display = "block";
-      document.getElementById("otpSection").style.display = "none";
       document.getElementById("forgotSection").style.display = "none";
-      document.getElementById("forgotOtpVerification").style.display = "none";
-      document.getElementById("authOtpInput").value = "";
-      document.getElementById("forgotOtpInput").value = "";
+      document.getElementById("authIdentity").value = "";
+      document.getElementById("authPassword").value = "";
       document.getElementById("forgotNewPassword").value = "";
       document.getElementById("forgotIdentity").value = "";
-      document.getElementById("authPassword").type = "password";
-      document.getElementById("toggleAuthPassword").className = "fa-solid fa-eye toggle-password-btn";
-      forgotStage = 1;
-      document.getElementById("forgotActionBtn").innerText = "Verify Identity";
-      generatedOtp = null;
-      forgotGeneratedOtp = null;
     }
 
     function openForgotBlock() {
       document.getElementById("credentialBlock").style.display = "none";
-      document.getElementById("otpSection").style.display = "none";
       document.getElementById("forgotSection").style.display = "block";
     }
 
-    function validateAndRequestOTP() {
+    function processSecureAuth() {
       const identity = document.getElementById("authIdentity").value.trim();
       const password = document.getElementById("authPassword").value.trim();
 
-      if(!identity || !password) return alert("कृपया सभी इनपुट फील्ड्स को पूरा भरें!");
-
+      if(!identity || !password) return alert("कृपया पूरा भरें!");
       const safeKey = identity.replace(/[.#$[\]]/g, "_");
 
       rtdb.ref('users/' + safeKey).once('value').then((snapshot) => {
         const userData = snapshot.val();
-
         if(isLoginMode) {
-          if(!userData) return alert("❌ यह यूजर आईडी रजिस्टर्ड नहीं है! पहले 'Register' करें।");
+          if(!userData) return alert("❌ आईडी रजिस्टर्ड नहीं है!");
           if(userData.password !== password) return alert("❌ गलत पासवर्ड!");
+          sessionStorage.setItem("app_authenticated", "true");
+          sessionStorage.setItem("current_user", identity);
+          resetAuthScreen();
+          checkUserSessionGate();
         } else {
-          if(userData) return alert("यह आईडी पहले से रजिस्टर्ड है! सीधे लॉगिन करें।");
+          if(userData) return alert("❌ आईडी पहले से मौजूद है!");
+          rtdb.ref('users/' + safeKey).set({ identity: identity, password: password }).then(() => {
+            alert("🎉 रजिस्ट्रेशन सफल!");
+            isLoginMode = true; toggleAuthMode(); resetAuthScreen();
+          });
         }
-
-        generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
-        validatedIdentity = identity;
-        validatedPassword = password;
-
-        document.getElementById("credentialBlock").style.display = "none";
-        document.getElementById("otpSection").style.display = "block";
-        document.getElementById("otpDisplayAlert").innerHTML = `📨 <b>सुरक्षा कोड (OTP):</b> <span style="font-size:18px; font-weight:700; color:#fff; background:#ff4757; padding:2px 8px; border-radius:5px; margin-left:5px; letter-spacing:2px;">${generatedOtp}</span>`;
       });
-    }
-
-    function verifyOtpAndLogin() {
-      const typedOtp = document.getElementById("authOtpInput").value.trim();
-      if(typedOtp !== generatedOtp) return alert("❌ अमान्य ओटीपी कोड!");
-
-      const safeKey = validatedIdentity.replace(/[.#$[\]]/g, "_");
-
-      if(!isLoginMode) {
-        rtdb.ref('users/' + safeKey).set({ identity: validatedIdentity, password: validatedPassword }).then(() => {
-          alert("✅ रजिस्ट्रेशन सफल! अब आप लॉगिन कर सकते हैं।");
-          isLoginMode = true; toggleAuthMode(); resetAuthScreen();
-        });
-        return;
-      }
-
-      sessionStorage.setItem("app_authenticated", "true");
-      sessionStorage.setItem("current_user", validatedIdentity);
-      
-      alert(`✅ स्वागत है: ${validatedIdentity}`);
-      resetAuthScreen();
-      checkUserSessionGate();
     }
 
     function processForgotPasswordVerify() {
       const targetId = document.getElementById("forgotIdentity").value.trim();
-      if(!targetId) return alert("कृपया अपना आईडी डालें!");
+      const newPass = document.getElementById("forgotNewPassword").value.trim();
+      if(!targetId || !newPass) return alert("सब भरें!");
       const safeKey = targetId.replace(/[.#$[\]]/g, "_");
 
-      if(forgotStage === 1) {
-        rtdb.ref('users/' + safeKey).once('value').then((snapshot) => {
-          if(!snapshot.exists()) return alert("❌ कोई रिकॉर्ड मौजूद नहीं है।");
-          forgotGeneratedOtp = Math.floor(1000 + Math.random() * 9000).toString();
-          document.getElementById("forgotOtpVerification").style.display = "block";
-          document.getElementById("forgotOtpDisplay").innerHTML = `🗝️ <b>ओटीपी:</b> <span style="font-size:16px; background:#e67e22; padding:2px 6px; border-radius:4px;">${forgotGeneratedOtp}</span>`;
-          document.getElementById("forgotActionBtn").innerText = "Reset Password Now";
-          forgotStage = 2;
-        });
-      } else if(forgotStage === 2) {
-        const userOtp = document.getElementById("forgotOtpInput").value.trim();
-        const newPass = document.getElementById("forgotNewPassword").value.trim();
-
-        if(userOtp !== forgotGeneratedOtp) return alert("❌ गलत रीसेट ओटीपी!");
-
+      rtdb.ref('users/' + safeKey).once('value').then((snapshot) => {
+        if(!snapshot.exists()) return alert("❌ रिकॉर्ड नहीं मिला।");
         rtdb.ref('users/' + safeKey).update({ password: newPass }).then(() => {
-          alert("🎉 पासवर्ड बदला गया! अब नए पासवर्ड से लॉगिन करें।");
+          alert("🎉 पासवर्ड बदला गया!");
           resetAuthScreen();
         });
-      }
+      });
     }
 
     function logoutSession() {
-      if(confirm("क्या आप लॉग आउट करना चाहते हैं?")) {
+      if(confirm("लॉग आउट करना चाहते हैं?")) {
         sessionStorage.clear();
         checkUserSessionGate();
       }
     }
 
-    // --- 100% FREE CLOUD SYSTEM (DATABASE ONLY) ---
-    
+    // --- SYNC ENGINE ---
     function toggleUploadPanel() {
       const panel = document.getElementById("uploadPanel");
       panel.style.display = panel.style.display === "block" ? "none" : "block";
@@ -421,9 +361,8 @@
 
     function listenToFreeCloudGallery() {
       const galleryDiv = document.getElementById("gallery");
-      galleryDiv.innerHTML = `<div class="loading-container"><i class="fa-solid fa-spinner fa-spin"></i> ऑनलाइन फ्री गैलरी सिंक हो रही है...</div>`;
+      galleryDiv.innerHTML = `<div class="loading-container"><i class="fa-solid fa-spinner fa-spin"></i> गैलरी लोड हो रही है...</div>`;
 
-      // रियल-टाइम डेटाबेस से डेटा सुनना (कोई स्टोरेज नहीं चाहिए)
       rtdb.ref('free_gallery_media').on('value', (snapshot) => {
         cloudItemsCache = [];
         snapshot.forEach((childSnapshot) => {
@@ -442,7 +381,7 @@
       const query = filterText.toLowerCase();
 
       if (cloudItemsCache.length === 0) {
-        gallery.innerHTML = `<div class="loading-container">गैलरी खाली है! नीचे '+' बटन दबाकर फ़ाइल अपलोड करें।</div>`;
+        gallery.innerHTML = `<div class="loading-container">गैलरी खाली है! नीचे '+' बटन दबाकर पहली फ़ाइल अपलोड करें।</div>`;
         return;
       }
 
@@ -453,17 +392,8 @@
         const card = document.createElement("div");
         card.className = "photo-card";
 
-        let mediaTag = `<img src="${item.url}" alt="Media" onclick="openLightbox('${item.url}')">`;
-
-        let commentsList = "";
-        if (item.comments) {
-          Object.values(item.comments).forEach(c => {
-            commentsList += `<div><b>${c.user}:</b> ${c.text}</div>`;
-          });
-        }
-
         card.innerHTML = `
-          <div class="media-container">${mediaTag}</div>
+          <div class="media-container"><img src="${item.url}" alt="Media" onclick="openLightbox('${item.url}')"></div>
           <div class="card-info">
             <h3>${item.name}</h3>
             <span class="album-tag"><i class="fa-regular fa-folder"></i> ${item.album}</span>
@@ -483,7 +413,7 @@
             </div>
           </div>
           <div class="comments-summary">
-            <div style="max-height: 50px; overflow-y:auto;">${commentsList}</div>
+            <div style="max-height: 50px; overflow-y:auto;">${item.comments ? Object.values(item.comments).map(c => `<div><b>${c.user}:</b> ${c.text}</div>`).join('') : ''}</div>
             <div class="comment-input-box">
               <input type="text" id="comment-in-${item.id}" placeholder="Add comment..." onkeydown="if(event.key === 'Enter') addCloudComment('${item.id}')">
             </div>
@@ -497,36 +427,57 @@
       renderGalleryUI(document.getElementById("searchBar").value);
     }
 
-    // [फ्री अपलोडर] - इमेज को Base64 स्ट्रिंग में बदलकर सीधे फ्री डेटाबेस में पुश करना
+    // [ऑटो कंप्रेसर इंजन] HTML5 CANVAS आधारित लाइव कम्प्रेशन एल्गोरिथम
     document.getElementById("mediaUpload").addEventListener("change", function (event) {
       const files = event.target.files;
       const album = document.getElementById("albumSelect").value;
       if (files.length === 0) return;
 
-      alert("⏳ अपलोडिंग शुरू हो रही है, डेटा सीधे क्लाउड डेटाबेस में सिंक हो रहा है...");
+      const progressStatus = document.getElementById("uploadProgressStatus");
+      progressStatus.style.display = "block";
 
       Array.from(files).forEach(file => {
-        // बड़ी फ़ाइलों की वजह से डेटाबेस क्रैश न हो, इसलिए 2MB की लिमिट लगाई है
-        if (file.size > 2 * 1024 * 1024) {
-          alert(`❌ फाइल "${file.name}" बहुत बड़ी है! फ्री डेटाबेस के लिए कृपया 2MB से छोटी फोटो अपलोड करें।`);
-          return;
-        }
-
         const reader = new FileReader();
         reader.onload = function (e) {
-          const base64Data = e.target.result; // फोटो का टेक्स्ट कोड
+          const img = new Image();
+          img.onload = function () {
+            // एक स्टैंडर्ड कैनवास चौड़ाई सेट करें (1024px सोशल मीडिया और मोबाइल के लिए बेस्ट है)
+            const canvas = document.createElement("canvas");
+            let width = img.width;
+            let height = img.height;
 
-          rtdb.ref('free_gallery_media').push({
-            name: file.name,
-            album: album,
-            url: base64Data, // पूरा इमेज डेटा टेक्स्ट के रूप में सुरक्षित
-            likes: 0,
-            uploader: sessionStorage.getItem("current_user") || "Anonymous"
-          }).then(() => {
-            console.log("Uploaded successfully to Free DB!");
-          }).catch(err => {
-            alert("डेटाबेस में सेव करने में एरर: " + err.message);
-          });
+            const max_size = 1024; 
+            if (width > height) {
+              if (width > max_size) { height *= max_size / width; width = max_size; }
+            } else {
+              if (height > max_size) { width *= max_size / height; height = max_size; }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // क्वालिटी को 0.7 (70%) पर कंप्रेस करना - साइज बहुत छोटी हो जाएगी पर फोटो साफ दिखेगी
+            const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
+
+            // कंप्रेस होने के बाद फ्री डेटाबेस में सेंड करें
+            rtdb.ref('free_gallery_media').push({
+              name: file.name.split('.')[0] + "_compressed.jpg",
+              album: album,
+              url: compressedBase64,
+              likes: 0,
+              uploader: sessionStorage.getItem("current_user") || "Anonymous"
+            }).then(() => {
+              progressStatus.style.display = "none";
+              console.log("Compressed & Synced!");
+            }).catch(err => {
+              progressStatus.style.display = "none";
+              alert("एरर: " + err.message);
+            });
+          };
+          img.src = e.target.result;
         };
         reader.readAsDataURL(file);
       });
@@ -534,31 +485,24 @@
     });
 
     function toggleCloudLike(id, currentLikes) {
-      rtdb.ref(`free_gallery_media/${id}`).update({
-        likes: currentLikes + 1
-      });
+      rtdb.ref(`free_gallery_media/${id}`).update({ likes: currentLikes + 1 });
     }
 
     function addCloudComment(id) {
       const input = document.getElementById(`comment-in-${id}`);
       const text = input.value.trim();
       const currentUser = sessionStorage.getItem("current_user") || "User";
-      
       if (text !== "") {
         rtdb.ref(`free_gallery_media/${id}/comments`).push({
           user: currentUser.split('@')[0],
           text: text
-        }).then(() => {
-          input.value = "";
-        });
+        }).then(() => { input.value = ""; });
       }
     }
 
     function deleteCloudMedia(id) {
       if(confirm("क्या आप इसे क्लाउड से हमेशा के लिए डिलीट करना चाहते हैं?")) {
-        rtdb.ref(`free_gallery_media/${id}`).remove().then(() => {
-          alert("🗑️ डिलीट सफल!");
-        });
+        rtdb.refFree = rtdb.ref(`free_gallery_media/${id}`).remove();
       }
     }
 
@@ -573,7 +517,6 @@
       document.getElementById("lightbox").style.display = "flex";
     }
 
-    // लाइटबॉक्स बंद करना
     function closeLightbox() {
       document.getElementById("lightboxMediaItem").innerHTML = "";
       document.getElementById("lightbox").style.display = "none";
